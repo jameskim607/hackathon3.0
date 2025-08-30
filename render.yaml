@@ -6,8 +6,9 @@ services:
     buildCommand: |
       export CARGO_NET_GIT_FETCH_WITH_CLI=true
       export PIP_NO_CACHE_DIR=1
+      export PIP_NO_BUILD_ISOLATION=1
       pip install --upgrade pip setuptools wheel
-      pip install --no-cache-dir --prefer-binary -r requirements-pure.txt
+      pip install --no-cache-dir --no-deps --only-binary=:all: -r requirements-no-rust.txt
     startCommand: cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: SUPABASE_URL
@@ -23,6 +24,10 @@ services:
       - key: CARGO_NET_GIT_FETCH_WITH_CLI
         value: "true"
       - key: RUST_BACKTRACE
+        value: "0"
+      - key: PIP_NO_BUILD_ISOLATION
+        value: "1"
+      - key: PIP_NO_INDEX
         value: "0"
 
   # Frontend Static Site
