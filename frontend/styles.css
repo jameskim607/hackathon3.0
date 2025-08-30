@@ -722,6 +722,22 @@ textarea {
     flex-wrap: wrap;
 }
 
+/* Logout Button */
+.logout-btn {
+    background: var(--danger-color);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-left: 20px;
+}
+
+.logout-btn:hover {
+    background: #d32f2f;
+}
+
 /* Authentication Pages */
 .auth-body {
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);

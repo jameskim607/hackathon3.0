@@ -1,5 +1,5 @@
 // API Base URL - will be set by environment variable in production
-const API_BASE_URL = window.API_BASE_URL || 'http://127.0.0.1:8000';
+const API_BASE_URL = window.API_BASE_URL || 'https://hackathon3-0-7.onrender.com';
 
 // File Upload Functions
 function initializeFileUpload() {
@@ -274,6 +274,112 @@ function saveAITranslationPreference() {
     }
 }
 
+// Authentication Functions
+async function handleLogin(event) {
+    event.preventDefault();
+    
+    const formData = new FormData(event.target);
+    const email = formData.get('email');
+    const password = formData.get('password');
+    const role = formData.get('role');
+    
+    try {
+        // For now, simulate successful login
+        // In a real app, you'd call your backend API
+        const user = {
+            id: 'user_' + Date.now(),
+            email: email,
+            role: role,
+            name: email.split('@')[0]
+        };
+        
+        // Store user info in localStorage
+        localStorage.setItem('currentUser', JSON.stringify(user));
+        localStorage.setItem('isLoggedIn', 'true');
+        
+        // Redirect based on role
+        if (role === 'teacher' || role === 'admin') {
+            window.location.href = 'upload.html';
+        } else {
+            window.location.href = 'index.html';
+        }
+        
+        showMessage('Login successful!', 'success');
+    } catch (error) {
+        showMessage('Login failed: ' + error.message, 'error');
+    }
+}
+
+async function handleSignup(event) {
+    event.preventDefault();
+    
+    const formData = new FormData(event.target);
+    const fullName = formData.get('fullName');
+    const email = formData.get('email');
+    const password = formData.get('password');
+    const role = formData.get('role');
+    const country = formData.get('country');
+    const language = formData.get('language');
+    
+    try {
+        // For now, simulate successful signup
+        // In a real app, you'd call your backend API
+        const user = {
+            id: 'user_' + Date.now(),
+            fullName: fullName,
+            email: email,
+            role: role,
+            country: country,
+            language: language
+        };
+        
+        // Store user info in localStorage
+        localStorage.setItem('currentUser', JSON.stringify(user));
+        localStorage.setItem('isLoggedIn', 'true');
+        
+        // Redirect based on role
+        if (role === 'teacher' || role === 'admin') {
+            window.location.href = 'upload.html';
+        } else {
+            window.location.href = 'index.html';
+        }
+        
+        showMessage('Account created successfully!', 'success');
+    } catch (error) {
+        showMessage('Signup failed: ' + error.message, 'error');
+    }
+}
+
+function logout() {
+    localStorage.removeItem('currentUser');
+    localStorage.removeItem('isLoggedIn');
+    window.location.href = 'login.html';
+}
+
+function checkAuthStatus() {
+    const isLoggedIn = localStorage.getItem('isLoggedIn');
+    const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    
+    if (isLoggedIn && currentUser.id) {
+        // User is logged in, show appropriate content
+        const loginLink = document.querySelector('a[href="login.html"]');
+        const signupLink = document.querySelector('a[href="signup.html"]');
+        
+        if (loginLink) loginLink.style.display = 'none';
+        if (signupLink) signupLink.style.display = 'none';
+        
+        // Add logout button
+        const header = document.querySelector('header');
+        if (header && !document.querySelector('.logout-btn')) {
+            const logoutBtn = document.createElement('button');
+            logoutBtn.className = 'logout-btn';
+            logoutBtn.textContent = `Logout (${currentUser.fullName || currentUser.email})`;
+            logoutBtn.onclick = logout;
+            header.appendChild(logoutBtn);
+        }
+    }
+}
+
 // Export functions for global access
 window.lmsApp = {
     login: handleLogin,
@@ -282,4 +388,7 @@ window.lmsApp = {
 };
 
 // Initialize the application
-document.addEventListener('DOMContentLoaded', initializeApp);
+document.addEventListener('DOMContentLoaded', function() {
+    initializeApp();
+    checkAuthStatus();
+});
