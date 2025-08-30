@@ -4,8 +4,10 @@ services:
     name: lms-backend
     env: python
     buildCommand: |
-      pip install --upgrade pip
-      pip install -r requirements-simple.txt
+      export CARGO_NET_GIT_FETCH_WITH_CLI=true
+      export PIP_NO_CACHE_DIR=1
+      pip install --upgrade pip setuptools wheel
+      pip install --no-cache-dir --prefer-binary -r requirements-pure.txt
     startCommand: cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: SUPABASE_URL
@@ -14,6 +16,14 @@ services:
         sync: false
       - key: PORT
         value: 8000
+      - key: PYTHON_VERSION
+        value: "3.11"
+      - key: PIP_NO_CACHE_DIR
+        value: "1"
+      - key: CARGO_NET_GIT_FETCH_WITH_CLI
+        value: "true"
+      - key: RUST_BACKTRACE
+        value: "0"
 
   # Frontend Static Site
   - type: web
