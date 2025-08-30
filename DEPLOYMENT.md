@@ -17,16 +17,20 @@ git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git
 git push -u origin main
 ```
 
-### Step 2: Deploy on Render
+### Step 2: Deploy on Render (Web Service - FREE)
 
 1. **Go to [render.com](https://render.com)** and sign up/login
-2. **Click "New +" → "Blueprint"**
+2. **Click "New +" → "Web Service"** (NOT Blueprint - that's paid)
 3. **Connect your GitHub repository**
-4. **Render will automatically detect the `render.yaml` file**
+4. **Configure the service:**
+   - **Name**: `lms-backend`
+   - **Environment**: `Python 3`
+   - **Build Command**: `pip install fastapi uvicorn pydantic python-multipart python-dotenv supabase python-dotenv`
+   - **Start Command**: `cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT`
 5. **Set Environment Variables:**
    - `SUPABASE_URL`: Your Supabase project URL
    - `SUPABASE_KEY`: Your Supabase anon key
-6. **Click "Apply"**
+6. **Click "Create Web Service"**
 
 ### Step 3: Update Frontend API URL
 
@@ -95,10 +99,36 @@ render restart
 - **Render Paid**: $7/month per service
 - **Supabase**: Free tier available
 
+## How File Uploads & Viewing Work
+
+### **Complete File Flow:**
+
+1. **Teacher Uploads File:**
+   - Goes to `upload.html` page
+   - Selects file and fills form
+   - File uploaded to Supabase Storage
+   - File URL stored in database
+
+2. **Students View Files:**
+   - Go to `index.html` (student portal)
+   - Browse resources by subject/grade
+   - Click on resource to see details
+   - Download/view files directly from Supabase
+
+3. **File Storage:**
+   - Files stored in Supabase Storage (cloud)
+   - File URLs are public and accessible
+   - No local file storage needed
+
+### **What Students See:**
+- Resource list with titles, descriptions, subjects
+- Click resource → Opens modal with file download link
+- Direct access to PDFs, documents, videos, etc.
+
 ## Next Steps After Deployment
 
-1. **Set up custom domain** (optional)
-2. **Configure SSL certificates** (automatic on Render)
-3. **Set up monitoring** and alerts
-4. **Configure backups** for your database
-5. **Set up CI/CD** for automatic deployments
+1. **Test file upload** from teacher dashboard
+2. **Test file viewing** from student portal
+3. **Set up custom domain** (optional)
+4. **Configure SSL certificates** (automatic on Render)
+5. **Set up monitoring** and alerts
