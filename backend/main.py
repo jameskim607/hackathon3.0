@@ -14,7 +14,7 @@ app = FastAPI(title="Education Resources API", version="1.0.0")
 origins = [
     "http://localhost:3000",  # For local development (React, Vite, Next.js)
     "http://localhost:5173",  # Common Vite dev server port
-    "https://your-frontend.vercel.app",  # REPLACE WITH YOUR PRODUCTION FRONTEND URL
+    "https://hackathon3-0-three.vercel.app",  # REPLACE WITH YOUR PRODUCTION FRONTEND URL
     # Add any other origins you need to allow (e.g., Netlify, GitHub Pages)
 ]
 
