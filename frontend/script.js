@@ -1,5 +1,5 @@
 // API Base URL - will be set by environment variable in production
-const API_BASE_URL = window.API_BASE_URL || 'https://hackathon3-0-7.onrender.com';
+const API_BASE_URL = window.API_BASE_URL || 'https://web-production-02449.up.railway.app/';
 
 // File Upload Functions
 function initializeFileUpload() {
