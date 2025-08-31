@@ -1,11 +1,30 @@
 import os
 import uvicorn
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List
 
 # Create FastAPI app
 app = FastAPI(title="Education Resources API", version="1.0.0")
+
+# ===== CORS MIDDLEWARE =====
+# Configure CORS to allow requests from your frontend
+# Replace "https://your-frontend.vercel.app" with your actual frontend URL
+origins = [
+    "http://localhost:3000",  # For local development (React, Vite, Next.js)
+    "http://localhost:5173",  # Common Vite dev server port
+    "https://your-frontend.vercel.app",  # REPLACE WITH YOUR PRODUCTION FRONTEND URL
+    # Add any other origins you need to allow (e.g., Netlify, GitHub Pages)
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all HTTP methods (GET, POST, etc.)
+    allow_headers=["*"],  # Allows all headers
+)
 
 # ===== MODELS =====
 class User(BaseModel):
@@ -111,4 +130,4 @@ def health():
 # ===== ENTRY POINT =====
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))  # Railway injects PORT
-    uvicorn.run("backend.main:app", host="0.0.0.0", port=port, reload=False)
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=False)
