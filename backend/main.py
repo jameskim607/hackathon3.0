@@ -130,4 +130,4 @@ def health():
 # ===== ENTRY POINT =====
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))  # Railway injects PORT
-    uvicorn.run("backendmain:app", host="0.0.0.0", port=port, reload=False)
+    uvicorn.run("backend.main:app", host="0.0.0.0", port=port, reload=False)  # FIXED: Added dot between backend.main
