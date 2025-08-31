@@ -1,51 +1,51 @@
-// =======================
-// LMS Frontend JS
-// =======================
+// TransLearn Frontend JavaScript
 const API_BASE_URL = 'https://web-production-02449.up.railway.app';
 
 // =======================
-// Auth Functions
+// Authentication Functions
 // =======================
+
 async function handleLogin(event) {
     event.preventDefault();
     
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value.trim();
-    const role = document.getElementById('role').value;
 
-    if (!email) {
-        showMessage('Email is required', 'error');
+    if (!email || !password) {
+        showMessage('Please fill in all fields', 'error');
         return;
     }
 
     try {
-        // Get all users from backend
-        const response = await fetch(`${API_BASE_URL}/users`);
-        if (!response.ok) throw new Error('Failed to fetch users');
-        
-        const data = await response.json();
-        const users = Array.isArray(data) ? data : (data.users || []);
-        
-        // Find user by email
-        const user = users.find(u => u.email && u.email.toLowerCase() === email.toLowerCase());
-        
-        if (!user) {
-            showMessage('No account found with this email', 'error');
-            return;
+        // For demo purposes - in real app, this would call your backend
+        const response = await fetch(`${API_BASE_URL}/users/login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email, password })
+        });
+
+        if (!response.ok) {
+            throw new Error('Login failed');
         }
 
-        // Login successful
-        localStorage.setItem('currentUser', JSON.stringify(user));
+        const userData = await response.json();
+        
+        // Store user data
+        localStorage.setItem('currentUser', JSON.stringify(userData));
         localStorage.setItem('isLoggedIn', 'true');
         
         showMessage('Login successful! Redirecting...', 'success');
         
+        // Redirect based on user role
         setTimeout(() => {
-            window.location.href = user.role === 'teacher' ? 'upload.html' : 'index.html';
+            window.location.href = userData.role === 'teacher' ? 'dashboard.html' : 'index.html';
         }, 1500);
 
     } catch (error) {
-        showMessage('Login failed: ' + error.message, 'error');
+        console.error('Login error:', error);
+        showMessage('Invalid email or password', 'error');
     }
 }
 
@@ -53,92 +53,120 @@ async function handleSignup(event) {
     event.preventDefault();
     
     const formData = new FormData(event.target);
-    const payload = {
-        id: Date.now(),
-        name: formData.get('fullName').trim(),
-        email: formData.get('email').trim(),
-        role: formData.get('role')
+    const userData = {
+        full_name: formData.get('fullName'),
+        email: formData.get('email'),
+        password: formData.get('password'),
+        phone: formData.get('phone'),
+        role: formData.get('role'),
+        country: formData.get('country'),
+        language: formData.get('language')
     };
 
-    if (!payload.email) {
-        showMessage('Email is required', 'error');
+    if (userData.password !== formData.get('confirmPassword')) {
+        showMessage('Passwords do not match', 'error');
         return;
     }
 
     try {
-        const response = await fetch(`${API_BASE_URL}/users`, {
+        const response = await fetch(`${API_BASE_URL}/users/register`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(userData)
         });
 
-        if (!response.ok) throw new Error('Failed to create account');
+        if (!response.ok) {
+            throw new Error('Registration failed');
+        }
 
-        const userData = await response.json();
-        showMessage('Account created successfully!', 'success');
+        const result = await response.json();
+        showMessage('Account created successfully! Please login.', 'success');
         
         setTimeout(() => {
             window.location.href = 'login.html';
-        }, 1500);
+        }, 2000);
 
     } catch (error) {
-        showMessage('Signup failed: ' + error.message, 'error');
-    }
-}
-
-async function quickSignup() {
-    const testEmail = `test${Math.floor(Math.random() * 1000)}@example.com`;
-    const testUser = {
-        id: Date.now(),
-        name: "Test User",
-        email: testEmail,
-        role: "student"
-    };
-
-    try {
-        // Create user
-        await fetch(`${API_BASE_URL}/users`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(testUser)
-        });
-
-        // Auto-fill and login
-        document.getElementById('email').value = testEmail;
-        document.getElementById('password').value = 'password';
-        document.getElementById('role').value = 'student';
-        
-        showMessage('Test account created! Logging in...', 'success');
-        
-        setTimeout(() => {
-            handleLogin({ preventDefault: () => {} });
-        }, 1000);
-
-    } catch (error) {
-        showMessage('Quick signup failed', 'error');
+        console.error('Signup error:', error);
+        showMessage('Registration failed. Please try again.', 'error');
     }
 }
 
 function logout() {
     localStorage.removeItem('currentUser');
     localStorage.removeItem('isLoggedIn');
-    window.location.href = 'login.html';
+    window.location.href = 'index.html';
 }
 
-function checkAuthStatus() {
+function checkAuth() {
     const isLoggedIn = localStorage.getItem('isLoggedIn');
-    const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    if (!isLoggedIn && !window.location.href.includes('login') && !window.location.href.includes('signup')) {
+        window.location.href = 'login.html';
+    }
+}
+
+// =======================
+// Resource Functions
+// =======================
+
+async function handleResourceUpload(event) {
+    event.preventDefault();
     
-    if (isLoggedIn && currentUser.id) {
-        // Update UI for logged-in users
-        const loginLinks = document.querySelectorAll('a[href="login.html"], a[href="signup.html"]');
-        loginLinks.forEach(link => link.style.display = 'none');
+    const formData = new FormData(event.target);
+    const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    
+    if (!user.id) {
+        showMessage('Please login to upload resources', 'error');
+        return;
+    }
+
+    const resourceData = {
+        title: formData.get('title'),
+        description: formData.get('description'),
+        subject: formData.get('subject'),
+        grade_level: formData.get('gradeLevel'),
+        language: formData.get('language'),
+        price: parseFloat(formData.get('price')) || 0,
+        tags: formData.get('tags').split(',').map(tag => tag.trim()),
+        teacher_id: user.id
+    };
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/resources/upload`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(resourceData)
+        });
+
+        if (!response.ok) {
+            throw new Error('Upload failed');
+        }
+
+        const result = await response.json();
+        showMessage('Resource uploaded successfully!', 'success');
+        
+        // Reset form
+        event.target.reset();
+        removeFile();
+        
+        setTimeout(() => {
+            window.location.href = 'dashboard.html';
+        }, 2000);
+
+    } catch (error) {
+        console.error('Upload error:', error);
+        showMessage('Upload failed. Please try again.', 'error');
     }
 }
 
 // =======================
 // File Upload Functions
 // =======================
+
 function initializeFileUpload() {
     const fileUploadArea = document.getElementById('fileUploadArea');
     const resourceFile = document.getElementById('resourceFile');
@@ -150,30 +178,53 @@ function initializeFileUpload() {
     fileUploadArea.addEventListener('dragover', (e) => {
         e.preventDefault();
         fileUploadArea.style.borderColor = 'var(--primary-color)';
+        fileUploadArea.style.backgroundColor = 'var(--bg-tertiary)';
     });
 
     fileUploadArea.addEventListener('dragleave', () => {
         fileUploadArea.style.borderColor = 'var(--border-color)';
+        fileUploadArea.style.backgroundColor = 'transparent';
     });
 
     fileUploadArea.addEventListener('drop', (e) => {
         e.preventDefault();
         fileUploadArea.style.borderColor = 'var(--border-color)';
-        if (e.dataTransfer.files[0]) handleFileSelection(e.dataTransfer.files[0]);
+        fileUploadArea.style.backgroundColor = 'transparent';
+        
+        if (e.dataTransfer.files.length > 0) {
+            handleFileSelection(e.dataTransfer.files[0]);
+        }
     });
 
     resourceFile.addEventListener('change', (e) => {
-        if (e.target.files[0]) handleFileSelection(e.target.files[0]);
+        if (e.target.files.length > 0) {
+            handleFileSelection(e.target.files[0]);
+        }
     });
 }
 
 function handleFileSelection(file) {
+    const allowedTypes = ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'txt', 'jpg', 'jpeg', 'png', 'mp4', 'mp3'];
+    const fileExtension = file.name.split('.').pop().toLowerCase();
+    
+    if (!allowedTypes.includes(fileExtension)) {
+        showMessage('File type not supported. Please upload PDF, DOC, PPT, images, or videos.', 'error');
+        return;
+    }
+
+    if (file.size > 50 * 1024 * 1024) { // 50MB limit
+        showMessage('File too large. Maximum size is 50MB.', 'error');
+        return;
+    }
+
     const fileInfo = document.getElementById('fileInfo');
     const fileName = document.getElementById('fileName');
+    const fileSize = document.getElementById('fileSize');
     const fileUploadArea = document.getElementById('fileUploadArea');
 
-    if (fileInfo && fileName && fileUploadArea) {
+    if (fileInfo && fileName && fileSize && fileUploadArea) {
         fileName.textContent = file.name;
+        fileSize.textContent = `(${(file.size / 1024 / 1024).toFixed(1)} MB)`;
         fileInfo.style.display = 'block';
         fileUploadArea.style.display = 'none';
     }
@@ -191,59 +242,133 @@ function removeFile() {
     }
 }
 
-async function handleResourceUpload(event) {
-    event.preventDefault();
-    
-    const formData = new FormData(event.target);
-    const resourceData = {
-        id: Date.now(),
-        title: formData.get('title'),
-        description: formData.get('description')
-    };
-
-    try {
-        const response = await fetch(`${API_BASE_URL}/resources`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(resourceData)
-        });
-
-        if (!response.ok) throw new Error('Upload failed');
-        
-        showMessage('Resource uploaded successfully!', 'success');
-        event.target.reset();
-        removeFile();
-
-    } catch (error) {
-        showMessage('Upload failed: ' + error.message, 'error');
-    }
-}
-
 // =======================
 // Utility Functions
 // =======================
+
 function showMessage(message, type = 'info') {
     // Remove existing messages
-    document.querySelectorAll('.message').forEach(msg => msg.remove());
-    
+    const existingMessages = document.querySelectorAll('.message');
+    existingMessages.forEach(msg => msg.remove());
+
     const messageDiv = document.createElement('div');
     messageDiv.className = `message message-${type}`;
     messageDiv.innerHTML = `
         <div class="message-content">
-            <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
+            <i class="fas ${getMessageIcon(type)}"></i>
             <span>${message}</span>
+            <button class="message-close" onclick="this.parentElement.parentElement.remove()">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
     `;
-    
+
     document.body.appendChild(messageDiv);
-    
+
+    // Auto-remove after 5 seconds
     setTimeout(() => {
-        if (messageDiv.parentElement) messageDiv.remove();
-    }, 4000);
+        if (messageDiv.parentElement) {
+            messageDiv.remove();
+        }
+    }, 5000);
 }
 
-// Initialize when page loads
+function getMessageIcon(type) {
+    switch (type) {
+        case 'success': return 'fa-check-circle';
+        case 'error': return 'fa-exclamation-circle';
+        case 'warning': return 'fa-exclamation-triangle';
+        default: return 'fa-info-circle';
+    }
+}
+
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// =======================
+// Payment Functions
+// =======================
+
+async function handlePayment(paymentData) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/payments/initiate`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(paymentData)
+        });
+
+        if (!response.ok) {
+            throw new Error('Payment initiation failed');
+        }
+
+        const result = await response.json();
+        return result;
+
+    } catch (error) {
+        console.error('Payment error:', error);
+        throw error;
+    }
+}
+
+// =======================
+// Initialize Application
+// =======================
+
 document.addEventListener('DOMContentLoaded', function() {
+    // Check authentication status
+    checkAuth();
+    
+    // Initialize file upload functionality
     initializeFileUpload();
-    checkAuthStatus();
+    
+    // Check if user is logged in
+    const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    if (user.id) {
+        // Update UI for logged-in users
+        const loginLinks = document.querySelectorAll('a[href="login.html"], a[href="signup.html"]');
+        loginLinks.forEach(link => link.style.display = 'none');
+        
+        const userElements = document.querySelectorAll('.user-name');
+        userElements.forEach(el => {
+            el.textContent = user.full_name || 'User';
+        });
+    }
+    
+    // Register service worker for PWA
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('service-worker.js')
+            .then(registration => {
+                console.log('SW registered: ', registration);
+            })
+            .catch(registrationError => {
+                console.log('SW registration failed: ', registrationError);
+            });
+    }
 });
+
+// Global functions
+window.handleLogin = handleLogin;
+window.handleSignup = handleSignup;
+window.handleResourceUpload = handleResourceUpload;
+window.logout = logout;
+window.removeFile = removeFile;
+window.showMessage = showMessage;

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - TransLearn</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">
+                <i class="fas fa-graduation-cap"></i>
+                <span>TransLearn</span>
+            </div>
+            <nav>
+                <a href="dashboard.html" class="active">Dashboard</a>
+                <a href="search.html">Browse</a>
+                <a href="upload.html">Upload</a>
+                <a href="#" onclick="logout()">Logout</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="container">
+            <div class="dashboard-header">
+                <h1>Welcome back, <span id="userName">User</span>!</h1>
+                <p>Continue your learning journey</p>
+            </div>
+
+            <div class="dashboard-stats">
+                <div class="stat-card">
+                    <i class="fas fa-book"></i>
+                    <div class="stat-content">
+                        <span class="stat-number" id="resourcesCount">0</span>
+                        <span class="stat-label">Resources Accessed</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-star"></i>
+                    <div class="stat-content">
+                        <span class="stat-number" id="ratingCount">0</span>
+                        <span class="stat-label">Ratings Given</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-language"></i>
+                    <div class="stat-content">
+                        <span class="stat-number" id="languagesCount">1</span>
+                        <span class="stat-label">Languages</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-sections">
+                <section class="recent-resources">
+                    <h2>Recently Viewed</h2>
+                    <div class="resources-grid" id="recentResources">
+                        <div class="resource-card">
+                            <div class="resource-icon">
+                                <i class="fas fa-file-pdf"></i>
+                            </div>
+                            <div class="resource-content">
+                                <h3>Mathematics Grade 7</h3>
+                                <p>Algebra basics and equations</p>
+                                <div class="resource-meta">
+                                    <span class="subject">Mathematics</span>
+                                    <span class="rating">⭐ 4.5</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="recommended-resources">
+                    <h2>Recommended for You</h2>
+                    <div class="resources-grid" id="recommendedResources">
+                        <!-- Recommended resources will be loaded here -->
+                    </div>
+                </section>
+
+                <section class="quick-actions">
+                    <h2>Quick Actions</h2>
+                    <div class="actions-grid">
+                        <a href="search.html" class="action-card">
+                            <i class="fas fa-search"></i>
+                            <span>Browse Resources</span>
+                        </a>
+                        <a href="upload.html" class="action-card">
+                            <i class="fas fa-upload"></i>
+                            <span>Upload Content</span>
+                        </a>
+                        <a href="#" class="action-card">
+                            <i class="fas fa-download"></i>
+                            <span>Download for Offline</span>
+                        </a>
+                        <a href="#" class="action-card">
+                            <i class="fas fa-cog"></i>
+                            <span>Settings</span>
+                        </a>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDashboardData();
+        });
+
+        async function loadDashboardData() {
+            try {
+                const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+                document.getElementById('userName').textContent = user.full_name || 'User';
+                
+                // Load user stats
+                const stats = await fetchUserStats();
+                if (stats) {
+                    document.getElementById('resourcesCount').textContent = stats.resources_accessed || 0;
+                    document.getElementById('ratingCount').textContent = stats.ratings_given || 0;
+                    document.getElementById('languagesCount').textContent = stats.languages_used || 1;
+                }
+                
+                // Load recommended resources
+                await loadRecommendedResources();
+                
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+            }
+        }
+
+        async function fetchUserStats() {
+            // Mock data - replace with actual API call
+            return {
+                resources_accessed: 12,
+                ratings_given: 5,
+                languages_used: 2
+            };
+        }
+
+        async function loadRecommendedResources() {
+            // Mock data - replace with actual API call
+            const resources = [
+                {
+                    title: "Science Grade 8",
+                    description: "Biology and chemistry fundamentals",
+                    subject: "Science",
+                    rating: 4.2
+                },
+                {
+                    title: "English Literature",
+                    description: "Poetry and prose analysis",
+                    subject: "English",
+                    rating: 4.7
+                }
+            ];
+
+            const container = document.getElementById('recommendedResources');
+            container.innerHTML = resources.map(resource => `
+                <div class="resource-card">
+                    <div class="resource-icon">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <div class="resource-content">
+                        <h3>${resource.title}</h3>
+                        <p>${resource.description}</p>
+                        <div class="resource-meta">
+                            <span class="subject">${resource.subject}</span>
+                            <span class="rating">⭐ ${resource.rating}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+    </script>
+</body>
+</html>
