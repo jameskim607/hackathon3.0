@@ -42,22 +42,19 @@ function initializeFileUpload() {
 }
 
 function handleFileSelection(file) {
-    // Validate file type
     const allowedTypes = ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'txt', 'jpg', 'jpeg', 'png', 'mp4', 'mp3'];
     const fileExtension = file.name.split('.').pop().toLowerCase();
     
     if (!allowedTypes.includes(fileExtension)) {
-        showMessage('File type not supported. Please upload a valid document, image, or media file.', 'error');
+        showMessage('File type not supported.', 'error');
         return;
     }
     
-    // Validate file size (max 50MB)
     if (file.size > 50 * 1024 * 1024) {
         showMessage('File too large. Maximum size is 50MB.', 'error');
         return;
     }
     
-    // Display file info
     const fileInfo = document.getElementById('fileInfo');
     const fileName = document.getElementById('fileName');
     const fileUploadArea = document.getElementById('fileUploadArea');
@@ -94,11 +91,8 @@ async function handleResourceUpload(event) {
     }
     
     try {
-        // Create FormData for file upload
         const uploadFormData = new FormData();
         uploadFormData.append('file', file);
-        
-        // Add other form data
         uploadFormData.append('title', formData.get('title'));
         uploadFormData.append('description', formData.get('description'));
         uploadFormData.append('subject', formData.get('subject'));
@@ -106,17 +100,13 @@ async function handleResourceUpload(event) {
         uploadFormData.append('country', formData.get('country'));
         uploadFormData.append('language', formData.get('language'));
         
-        // Add tags if provided
         const tags = formData.get('tags');
         if (tags && tags.trim()) {
             uploadFormData.append('tags', tags);
         }
         
-        const response = await fetch(`${API_BASE_URL}/resources/upload`, {
+        const response = await fetch(`${API_BASE_URL}/resources`, {
             method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)}`
-            },
             body: uploadFormData
         });
         
@@ -125,17 +115,12 @@ async function handleResourceUpload(event) {
         if (response.ok) {
             showMessage('Resource uploaded successfully!', 'success');
             event.target.reset();
-            const fileInfo = document.getElementById('fileInfo');
-            const fileUploadArea = document.getElementById('fileUploadArea');
-            if (fileInfo && fileUploadArea) {
-                fileInfo.style.display = 'none';
-                fileUploadArea.style.display = 'block';
-            }
+            document.getElementById('fileInfo').style.display = 'none';
+            document.getElementById('fileUploadArea').style.display = 'block';
         } else {
             throw new Error(data.detail || 'Upload failed');
         }
     } catch (error) {
-        console.error('Upload error:', error);
         showMessage(error.message || 'Upload failed. Please try again.', 'error');
     }
 }
@@ -149,7 +134,6 @@ function showLoading(show) {
 }
 
 function showMessage(message, type = 'info') {
-    // Remove existing messages
     const existingMessages = document.querySelectorAll('.message');
     existingMessages.forEach(msg => msg.remove());
     
@@ -165,13 +149,11 @@ function showMessage(message, type = 'info') {
         </div>
     `;
     
-    // Insert at the top of the main content
     const main = document.querySelector('.main');
     if (main) {
         main.insertBefore(messageDiv, main.firstChild);
     }
     
-    // Auto-remove after 5 seconds
     setTimeout(() => {
         if (messageDiv.parentElement) {
             messageDiv.remove();
@@ -244,61 +226,27 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-function loadSavedPreferences() {
-    const savedLanguage = localStorage.getItem(STORAGE_KEYS.PREFERRED_LANGUAGE);
-    const preferredLanguage = document.getElementById('preferredLanguage');
-    
-    if (savedLanguage && preferredLanguage) {
-        preferredLanguage.value = savedLanguage;
-    }
-    
-    const savedAITranslation = localStorage.getItem(STORAGE_KEYS.AI_TRANSLATION);
-    const enableAITranslation = document.getElementById('enableAITranslation');
-    
-    if (savedAITranslation && enableAITranslation) {
-        enableAITranslation.checked = savedAITranslation === 'true';
-    }
-}
+// ========== AUTH FUNCTIONS ==========
 
-function saveLanguagePreference() {
-    const preferredLanguage = document.getElementById('preferredLanguage');
-    if (preferredLanguage) {
-        localStorage.setItem(STORAGE_KEYS.PREFERRED_LANGUAGE, preferredLanguage.value);
-    }
-}
-
-function saveAITranslationPreference() {
-    const enableAITranslation = document.getElementById('enableAITranslation');
-    if (enableAITranslation) {
-        localStorage.setItem(STORAGE_KEYS.AI_TRANSLATION, enableAITranslation.checked);
-    }
-}
-
-// Authentication Functions
+// LOGIN
 async function handleLogin(event) {
     event.preventDefault();
-    
     const formData = new FormData(event.target);
     const email = formData.get('email');
     const password = formData.get('password');
-    const role = formData.get('role');
     
     try {
-        // For now, simulate successful login
-        // In a real app, you'd call your backend API
-        const user = {
-            id: 'user_' + Date.now(),
-            email: email,
-            role: role,
-            name: email.split('@')[0]
-        };
+        const response = await fetch(`${API_BASE_URL}/users`);
+        const users = await response.json();
+
+        const user = users.find(u => u.email === email && u.password === password);
         
-        // Store user info in localStorage
+        if (!user) throw new Error("Invalid email or password");
+        
         localStorage.setItem('currentUser', JSON.stringify(user));
         localStorage.setItem('isLoggedIn', 'true');
         
-        // Redirect based on role
-        if (role === 'teacher' || role === 'admin') {
+        if (user.role === 'teacher' || user.role === 'admin') {
             window.location.href = 'upload.html';
         } else {
             window.location.href = 'index.html';
@@ -310,35 +258,35 @@ async function handleLogin(event) {
     }
 }
 
+// SIGNUP
 async function handleSignup(event) {
     event.preventDefault();
     
     const formData = new FormData(event.target);
-    const fullName = formData.get('fullName');
-    const email = formData.get('email');
-    const password = formData.get('password');
-    const role = formData.get('role');
-    const country = formData.get('country');
-    const language = formData.get('language');
+    const userData = {
+        full_name: formData.get('fullName'),
+        email: formData.get('email'),
+        password: formData.get('password'),
+        role: formData.get('role'),
+        country: formData.get('country'),
+        language: formData.get('language')
+    };
     
     try {
-        // For now, simulate successful signup
-        // In a real app, you'd call your backend API
-        const user = {
-            id: 'user_' + Date.now(),
-            fullName: fullName,
-            email: email,
-            role: role,
-            country: country,
-            language: language
-        };
+        const response = await fetch(`${API_BASE_URL}/users`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(userData)
+        });
         
-        // Store user info in localStorage
+        const user = await response.json();
+        
+        if (!response.ok) throw new Error(user.detail || 'Signup failed');
+        
         localStorage.setItem('currentUser', JSON.stringify(user));
         localStorage.setItem('isLoggedIn', 'true');
         
-        // Redirect based on role
-        if (role === 'teacher' || role === 'admin') {
+        if (user.role === 'teacher' || user.role === 'admin') {
             window.location.href = 'upload.html';
         } else {
             window.location.href = 'index.html';
@@ -361,34 +309,32 @@ function checkAuthStatus() {
     const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
     
     if (isLoggedIn && currentUser.id) {
-        // User is logged in, show appropriate content
         const loginLink = document.querySelector('a[href="login.html"]');
         const signupLink = document.querySelector('a[href="signup.html"]');
         
         if (loginLink) loginLink.style.display = 'none';
         if (signupLink) signupLink.style.display = 'none';
         
-        // Add logout button
         const header = document.querySelector('header');
         if (header && !document.querySelector('.logout-btn')) {
             const logoutBtn = document.createElement('button');
             logoutBtn.className = 'logout-btn';
-            logoutBtn.textContent = `Logout (${currentUser.fullName || currentUser.email})`;
+            logoutBtn.textContent = `Logout (${currentUser.full_name || currentUser.email})`;
             logoutBtn.onclick = logout;
             header.appendChild(logoutBtn);
         }
     }
 }
 
-// Export functions for global access
+// Export functions
 window.lmsApp = {
     login: handleLogin,
     signup: handleSignup,
     logout: logout
 };
 
-// Initialize the application
+// Initialize
 document.addEventListener('DOMContentLoaded', function() {
-    initializeApp();
+    initializeApp?.();
     checkAuthStatus();
 });
