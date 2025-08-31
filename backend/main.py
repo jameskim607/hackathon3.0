@@ -10,11 +10,10 @@ app = FastAPI(title="Education Resources API", version="1.0.0")
 
 # ===== CORS MIDDLEWARE =====
 # Configure CORS to allow requests from your frontend
-# Replace "https://your-frontend.vercel.app" with your actual frontend URL
 origins = [
     "http://localhost:3000",  # For local development (React, Vite, Next.js)
     "http://localhost:5173",  # Common Vite dev server port
-    "https://hackathon3-0-three.vercel.app",  # REPLACE WITH YOUR PRODUCTION FRONTEND URL
+    "https://hackathon3-0-three.vercel.app",  # Your production frontend URL
     # Add any other origins you need to allow (e.g., Netlify, GitHub Pages)
 ]
 
@@ -128,6 +127,5 @@ def health():
 
 
 # ===== ENTRY POINT =====
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8000))  # Railway injects PORT
-    uvicorn.run("backend.main:app", host="0.0.0.0", port=port, reload=False)  # FIXED: Added dot between backend.main
+# Railway handles startup automatically via "python -m backend.main"
+# No need for manual uvicorn execution
