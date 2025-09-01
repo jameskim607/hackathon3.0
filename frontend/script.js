@@ -2,14 +2,13 @@
 // script.js - TransLearn Frontend (complete)
 // =======================
 
-// Backend base URL - change if needed
-const API_BASE_URL = (window.API_BASE_URL || 'https://web-production-02449.up.railway.app').replace(/\/$/, '');
+// Backend base URL - FIXED: Correct URL from your console
+const API_BASE_URL = (window.API_BASE_URL || 'https://web-production-82449.up.railway.app').replace(/\/$/, '');
 
 // =======================
 // Global status message helper
 // =======================
 function showStatus(message, type = 'success') {
-  // type: 'success' | 'error' | 'loading'
   let statusDiv = document.getElementById('statusMessage');
   if (!statusDiv) {
     statusDiv = document.createElement('div');
@@ -41,10 +40,8 @@ function initializeFileUpload() {
 
   if (!fileUploadArea || !fileInput) return;
 
-  // click area opens file selector
   fileUploadArea.addEventListener('click', () => fileInput.click());
 
-  // when file selected via file picker
   fileInput.addEventListener('change', () => {
     if (fileInput.files.length > 0) {
       const file = fileInput.files[0];
@@ -55,7 +52,6 @@ function initializeFileUpload() {
     }
   });
 
-  // drag over
   fileUploadArea.addEventListener('dragover', (e) => {
     e.preventDefault();
     fileUploadArea.classList.add('dragover');
@@ -65,7 +61,6 @@ function initializeFileUpload() {
     fileUploadArea.classList.remove('dragover');
   });
 
-  // drop
   fileUploadArea.addEventListener('drop', (e) => {
     e.preventDefault();
     fileUploadArea.classList.remove('dragover');
@@ -110,7 +105,33 @@ function clearCurrentUser() {
 }
 
 // =======================
-// Signup
+// Enhanced fetch with error handling
+// =======================
+async function safeFetch(url, options = {}) {
+  try {
+    const response = await fetch(url, options);
+    
+    if (!response.ok) {
+      let errorMessage = `HTTP ${response.status}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.detail || errorData.message || errorMessage;
+      } catch (e) {
+        // If response is not JSON, use status text
+        errorMessage = response.statusText || errorMessage;
+      }
+      throw new Error(errorMessage);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Fetch error:', error);
+    throw error;
+  }
+}
+
+// =======================
+// Signup (FIXED with better error handling)
 // =======================
 async function handleSignup(evt) {
   evt.preventDefault();
@@ -139,29 +160,27 @@ async function handleSignup(evt) {
 
   try {
     showStatus('Creating account...', 'loading');
-    const res = await fetch(`${API_BASE_URL}/users/register`, {
+    
+    const response = await safeFetch(`${API_BASE_URL}/users/register`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
       body: JSON.stringify(payload)
     });
 
-    const body = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      const err = body.detail || body.message || 'Signup failed';
-      showStatus(err, 'error');
-      return;
-    }
-
     showStatus('Account created. Please login.', 'success');
     setTimeout(() => window.location.href = 'login.html', 1200);
-  } catch (err) {
-    console.error(err);
-    showStatus('Network error. Try again later.', 'error');
+    
+  } catch (error) {
+    console.error('Signup error:', error);
+    showStatus(`Signup failed: ${error.message}`, 'error');
   }
 }
 
 // =======================
-// Login (UPDATED - handles 422 error)
+// Login (SIMPLIFIED and FIXED)
 // =======================
 async function handleLogin(evt) {
   evt.preventDefault();
@@ -176,95 +195,26 @@ async function handleLogin(evt) {
     return;
   }
 
+  // Try the most common format first
+  const payload = { email, password };
+
   try {
     showStatus('Signing in...', 'loading');
     
-    // Try different payload formats - backend might expect different field names
-    const payloads = [
-      { email: email, password: password }, // Most common
-      { username: email, password: password }, // Some APIs use username
-      { email: email, password: password, grant_type: 'password' }, // OAuth style
-      { user: { email: email, password: password } } // Nested format
-    ];
+    const response = await safeFetch(`${API_BASE_URL}/users/login`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
 
-    let responseData = null;
-    let successfulFormat = null;
-
-    // Try each payload format until one works
-    for (const payload of payloads) {
-      try {
-        console.log('Trying login with payload:', payload);
-        const res = await fetch(`${API_BASE_URL}/users/login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-
-        // Clone response to read without consuming
-        const responseClone = res.clone();
-        const responseText = await responseClone.text();
-        console.log('Response status:', res.status, 'Response:', responseText);
-
-        if (res.ok) {
-          responseData = JSON.parse(responseText);
-          successfulFormat = payload;
-          console.log('Login successful with format:', successfulFormat);
-          break;
-        }
-        
-        // If it's a 422, try the next format
-        if (res.status === 422) {
-          console.log('422 error with format, trying next...', payload);
-          continue;
-        }
-
-        // For other errors, show message
-        try {
-          const errorBody = JSON.parse(responseText);
-          const errMsg = errorBody.detail || errorBody.message || `HTTP ${res.status}`;
-          if (res.status !== 422) {
-            showStatus(`Login failed: ${errMsg}`, 'error');
-            return;
-          }
-        } catch (parseError) {
-          console.error('Error parsing response:', parseError);
-          if (res.status !== 422) {
-            showStatus(`Login failed: HTTP ${res.status}`, 'error');
-            return;
-          }
-        }
-      } catch (err) {
-        console.error('Network error with format:', payload, err);
-        continue;
-      }
-    }
-
-    if (!responseData) {
-      showStatus('Login failed. Please check your credentials or try a different format.', 'error');
-      return;
-    }
-
-    // Extract user data from different possible response formats
-    let userData = null;
-    if (responseData.user) {
-      userData = responseData.user; // { user: { ... } }
-    } else if (responseData.data) {
-      userData = responseData.data; // { data: { ... } }
-    } else if (responseData.access_token) {
-      // JWT token response - create minimal user object
-      userData = { 
-        email: email,
-        token: responseData.access_token,
-        // Add other fields if available
-        ...(responseData.user || {})
-      };
-    } else {
-      userData = responseData; // Direct user object
-    }
-
-    // Ensure we have basic user info
-    if (!userData.email && email) {
-      userData.email = email;
+    // Handle different response formats
+    const userData = response.user || response.data || response;
+    
+    if (!userData.email) {
+      userData.email = email; // Ensure email is set
     }
 
     saveCurrentUser(userData);
@@ -274,9 +224,9 @@ async function handleLogin(evt) {
       window.location.href = 'dashboard.html';
     }, 800);
 
-  } catch (err) {
-    console.error('Login error:', err);
-    showStatus('Network error. Try again later.', 'error');
+  } catch (error) {
+    console.error('Login error:', error);
+    showStatus(`Login failed: ${error.message}`, 'error');
   }
 }
 
@@ -298,16 +248,11 @@ async function handleSearch(evt) {
 
   try {
     resultsEl.innerHTML = '<p>Searching...</p>';
-    // Use resources endpoint - we send 'search' param even if backend may ignore it
-    const params = new URLSearchParams({ search: query, page: '1', limit: '20' });
-    const res = await fetch(`${API_BASE_URL}/resources?${params.toString()}`);
-    const body = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      resultsEl.innerHTML = `<p class="error">${body.detail || 'Search failed'}</p>`;
-      return;
-    }
-
-    const resources = body.resources || body || [];
+    
+    const response = await safeFetch(`${API_BASE_URL}/resources?search=${encodeURIComponent(query)}&limit=20`);
+    
+    const resources = response.resources || response || [];
+    
     if (!resources.length) {
       resultsEl.innerHTML = `<p>No resources found for "${query}".</p>`;
       return;
@@ -315,7 +260,6 @@ async function handleSearch(evt) {
 
     resultsEl.innerHTML = resources.map(r => {
       const priceStr = (r.price && r.price > 0) ? `KES ${r.price}` : 'Free';
-      const fileLink = r.file_url ? `<a class="btn" href="${r.file_url}" target="_blank" rel="noopener">Download</a>` : `<a class="btn" href="#">View</a>`;
       return `
         <div class="resource-card">
           <h3>${escapeHtml(r.title || 'Untitled')}</h3>
@@ -327,18 +271,19 @@ async function handleSearch(evt) {
           </div>
           <div class="footer">
             <span class="price">${priceStr}</span>
-            ${fileLink}
+            <a class="btn" href="#">View</a>
           </div>
         </div>
       `;
     }).join('');
-  } catch (err) {
-    console.error(err);
-    resultsEl.innerHTML = `<p class="error">Network error. Please try again.</p>`;
+    
+  } catch (error) {
+    console.error('Search error:', error);
+    resultsEl.innerHTML = `<p class="error">Search failed: ${error.message}</p>`;
   }
 }
 
-// small helper to avoid XSS when injecting text
+// Helper to avoid XSS
 function escapeHtml(s) {
   return String(s || '')
     .replaceAll('&','&amp;')
@@ -402,26 +347,23 @@ async function handleResourceUpload(evt) {
 
   try {
     showStatus('Uploading resource...', 'loading');
-    const res = await fetch(`${API_BASE_URL}/resources/upload`, {
+    
+    const response = await safeFetch(`${API_BASE_URL}/resources/upload`, {
       method: 'POST',
       body: formData
-      // Note: do NOT set Content-Type — browser will set multipart boundary
     });
-
-    const body = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      const err = body.detail || body.message || 'Upload failed';
-      showStatus(err, 'error');
-      return;
-    }
 
     showStatus('Resource uploaded successfully!', 'success');
     form.reset();
     removeFile();
-    setTimeout(() => window.location.href = 'dashboard.html', 1000);
-  } catch (err) {
-    console.error(err);
-    showStatus('Network error. Try again later.', 'error');
+    
+    setTimeout(() => {
+      window.location.href = 'dashboard.html';
+    }, 1000);
+    
+  } catch (error) {
+    console.error('Upload error:', error);
+    showStatus(`Upload failed: ${error.message}`, 'error');
   }
 }
 
@@ -443,14 +385,11 @@ async function loadDashboard() {
 
   // Load recommended resources
   try {
-    const res = await fetch(`${API_BASE_URL}/resources?limit=6`);
-    if (!res.ok) return;
-    
-    const body = await res.json();
+    const response = await safeFetch(`${API_BASE_URL}/resources?limit=6`);
     const recEl = document.getElementById('recommendedResources');
     if (!recEl) return;
     
-    const resources = body.resources || body || [];
+    const resources = response.resources || response || [];
     
     if (resources.length === 0) {
       recEl.innerHTML = '<p>No resources available yet.</p>';
@@ -474,8 +413,9 @@ async function loadDashboard() {
         </div>
       `;
     }).join('');
-  } catch (e) {
-    console.error('Failed to load dashboard resources:', e);
+    
+  } catch (error) {
+    console.error('Dashboard load error:', error);
     const recEl = document.getElementById('recommendedResources');
     if (recEl) {
       recEl.innerHTML = '<p>Unable to load resources at this time.</p>';
@@ -488,10 +428,7 @@ async function loadDashboard() {
 // =======================
 async function loadHomepageStats() {
   try {
-    const res = await fetch(`${API_BASE_URL}/api/stats`);
-    if (!res.ok) return;
-    
-    const data = await res.json();
+    const data = await safeFetch(`${API_BASE_URL}/api/stats`);
     
     if (data.resources) {
       const el = document.getElementById('resource-count');
@@ -507,8 +444,8 @@ async function loadHomepageStats() {
       const el = document.getElementById('student-count');
       if (el) el.textContent = data.students;
     }
-  } catch (e) {
-    console.error('Failed to load stats:', e);
+  } catch (error) {
+    console.error('Stats load error:', error);
     // Set default values if API fails
     const resourceCount = document.getElementById('resource-count');
     const languageCount = document.getElementById('language-count');
@@ -565,15 +502,19 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-// Service Worker Registration
+// =======================
+// Service Worker Registration (FIXED)
+// =======================
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
+    // Only register service worker if we're not getting errors
     navigator.serviceWorker.register('service-worker.js')
       .then((registration) => {
-        console.log('SW registered: ', registration);
+        console.log('Service Worker registered successfully:', registration);
       })
       .catch((registrationError) => {
-        console.log('SW registration failed: ', registrationError);
+        console.log('Service Worker registration failed. This is normal if you dont have a service-worker.js file:', registrationError);
+        // Don't show error to user - it's not critical
       });
   });
 }
