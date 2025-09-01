@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sign Up - TransLearn</title>
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link rel="manifest" href="manifest.json">
 </head>
 <body>
   <header class="site-header">
@@ -16,40 +17,32 @@
 
   <main class="main">
     <div class="container auth-card">
-      <h1>Create an account</h1>
-
-      <!-- global status message target -->
+      <h1>Create an Account</h1>
       <div id="statusMessage" style="display:none;"></div>
-
       <form id="signupForm" class="auth-form">
         <div class="form-group">
           <label for="name">Full name</label>
           <input id="name" name="name" type="text" required placeholder="Your full name" />
         </div>
-
         <div class="form-group">
           <label for="email">Email address</label>
           <input id="email" name="email" type="email" required placeholder="you@example.com" />
         </div>
-
         <div class="form-group">
           <label for="password">Password</label>
           <input id="password" name="password" type="password" required placeholder="Choose a password" />
         </div>
-
         <div class="form-group">
-          <label for="role">I'm a</label>
+          <label for="role">I am a</label>
           <select id="role" name="role" required>
             <option value="student">Student</option>
             <option value="teacher">Teacher</option>
           </select>
         </div>
-
         <div class="form-actions">
           <button type="submit" class="btn btn-primary">Sign Up</button>
         </div>
       </form>
-
       <p class="muted">Already registered? <a href="login.html">Sign in</a></p>
     </div>
   </main>

@@ -1,253 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment - TransLearn</title>
-    <link rel="stylesheet" href="styles.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment - TransLearn</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link rel="manifest" href="manifest.json">
 </head>
 <body>
-    <header>
-        <div class="container">
-            <div class="logo">
-                <i class="fas fa-graduation-cap"></i>
-                <span>TransLearn</span>
-            </div>
-            <nav>
-                <a href="index.html">Home</a>
-                <a href="dashboard.html">Dashboard</a>
-            </nav>
-        </div>
-    </header>
+  <header class="site-header">
+    <div class="container">
+      <div class="logo"><i class="fas fa-graduation-cap"></i> TransLearn</div>
+      <nav class="nav">
+        <a href="index.html">Home</a>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="upload.html">Upload</a>
+        <a href="#" onclick="clearCurrentUser(); window.location.href='login.html';">Logout</a>
+      </nav>
+    </div>
+  </header>
 
-    <main class="main">
-        <div class="container">
-            <div class="payment-header">
-                <h1>Complete Your Purchase</h1>
-                <p>Access premium educational resources</p>
-            </div>
+  <main class="main">
+    <div class="container">
+      <h1>Payment</h1>
+      <p>Feature coming soon.</p>
+    </div>
+  </main>
 
-            <div class="payment-container">
-                <div class="payment-summary">
-                    <h2>Order Summary</h2>
-                    <div class="resource-summary">
-                        <div class="resource-image">
-                            <i class="fas fa-file-pdf"></i>
-                        </div>
-                        <div class="resource-details">
-                            <h3 id="resourceTitle">Advanced Mathematics Grade 12</h3>
-                            <p id="resourceDescription">Complete calculus and advanced algebra course</p>
-                            <div class="resource-meta">
-                                <span class="subject" id="resourceSubject">Mathematics</span>
-                                <span class="grade" id="resourceGrade">Grade 12</span>
-                            </div>
-                        </div>
-                        <div class="resource-price">
-                            <span id="resourcePrice">KES 200.00</span>
-                        </div>
-                    </div>
-
-                    <div class="price-breakdown">
-                        <div class="price-item">
-                            <span>Resource price</span>
-                            <span id="priceAmount">KES 200.00</span>
-                        </div>
-                        <div class="price-item">
-                            <span>Service fee</span>
-                            <span>KES 10.00</span>
-                        </div>
-                        <div class="price-item total">
-                            <span>Total</span>
-                            <span id="totalAmount">KES 210.00</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="payment-methods">
-                    <h2>Payment Method</h2>
-                    
-                    <div class="payment-options">
-                        <div class="payment-option active" data-method="flutterwave">
-                            <i class="fab fa-cc-flutterwave"></i>
-                            <span>Flutterwave</span>
-                        </div>
-                        <div class="payment-option" data-method="paystack">
-                            <i class="fab fa-cc-paystack"></i>
-                            <span>Paystack</span>
-                        </div>
-                        <div class="payment-option" data-method="mpesa">
-                            <i class="fas fa-mobile-alt"></i>
-                            <span>M-Pesa</span>
-                        </div>
-                    </div>
-
-                    <form id="paymentForm" class="payment-form">
-                        <div class="form-group">
-                            <label for="email">Email Address *</label>
-                            <input type="email" id="email" name="email" required 
-                                   placeholder="Enter your email for receipt">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="phone">Phone Number</label>
-                            <input type="tel" id="phone" name="phone" 
-                                   placeholder="+254 XXX XXX XXX (for payment confirmation)">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="cardNumber">Card Number</label>
-                            <input type="text" id="cardNumber" name="cardNumber" 
-                                   placeholder="1234 5678 9012 3456" class="card-input">
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="expiryDate">Expiry Date</label>
-                                <input type="text" id="expiryDate" name="expiryDate" 
-                                       placeholder="MM/YY">
-                            </div>
-                            <div class="form-group">
-                                <label for="cvv">CVV</label>
-                                <input type="text" id="cvv" name="cvv" placeholder="123">
-                            </div>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary btn-full">
-                            <i class="fas fa-lock"></i> Pay KES 210.00
-                        </button>
-
-                        <div class="payment-security">
-                            <i class="fas fa-shield-alt"></i>
-                            <span>Your payment is secure and encrypted</span>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <div class="payment-footer">
-                <div class="security-features">
-                    <div class="security-item">
-                        <i class="fas fa-shield-alt"></i>
-                        <span>SSL Secure Payment</span>
-                    </div>
-                    <div class="security-item">
-                        <i class="fas fa-lock"></i>
-                        <span>PCI DSS Compliant</span>
-                    </div>
-                    <div class="security-item">
-                        <i class="fas fa-sync-alt"></i>
-                        <span>Instant Access</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <script src="script.js"></script>
-    <script>
-        const API_BASE_URL = 'https://web-production-02449.up.railway.app';
-        let currentResource = null;
-        let selectedPaymentMethod = 'flutterwave';
-
-        document.addEventListener('DOMContentLoaded', function() {
-            loadResourceDetails();
-            setupPaymentOptions();
-        });
-
-        function loadResourceDetails() {
-            // Get resource ID from URL
-            const urlParams = new URLSearchParams(window.location.search);
-            const resourceId = urlParams.get('id');
-            
-            if (!resourceId) {
-                window.location.href = 'search.html';
-                return;
-            }
-
-            // Mock data - replace with actual API call
-            currentResource = {
-                id: resourceId,
-                title: "Advanced Mathematics Grade 12",
-                description: "Complete calculus and advanced algebra course with practice problems",
-                subject: "Mathematics",
-                grade_level: "Grade 12",
-                price: 200.00
-            };
-
-            updateResourceDisplay();
-        }
-
-        function updateResourceDisplay() {
-            if (!currentResource) return;
-
-            document.getElementById('resourceTitle').textContent = currentResource.title;
-            document.getElementById('resourceDescription').textContent = currentResource.description;
-            document.getElementById('resourceSubject').textContent = currentResource.subject;
-            document.getElementById('resourceGrade').textContent = currentResource.grade_level;
-            document.getElementById('resourcePrice').textContent = `KES ${currentResource.price.toFixed(2)}`;
-            document.getElementById('priceAmount').textContent = `KES ${currentResource.price.toFixed(2)}`;
-            
-            const total = currentResource.price + 10.00; // Adding service fee
-            document.getElementById('totalAmount').textContent = `KES ${total.toFixed(2)}`;
-        }
-
-        function setupPaymentOptions() {
-            const options = document.querySelectorAll('.payment-option');
-            options.forEach(option => {
-                option.addEventListener('click', () => {
-                    options.forEach(opt => opt.classList.remove('active'));
-                    option.classList.add('active');
-                    selectedPaymentMethod = option.dataset.method;
-                    updatePaymentForm();
-                });
-            });
-        }
-
-        function updatePaymentForm() {
-            // Show/hide form fields based on selected payment method
-            const cardFields = document.querySelectorAll('.card-input');
-            cardFields.forEach(field => {
-                field.style.display = selectedPaymentMethod !== 'mpesa' ? 'block' : 'none';
-            });
-        }
-
-        document.getElementById('paymentForm').addEventListener('submit', async function(event) {
-            event.preventDefault();
-            
-            const formData = new FormData(event.target);
-            const paymentData = {
-                amount: 210.00,
-                currency: 'KES',
-                email: formData.get('email'),
-                phone: formData.get('phone'),
-                metadata: {
-                    resource_id: currentResource.id,
-                    resource_title: currentResource.title
-                }
-            };
-
-            try {
-                const response = await fetch(`${API_BASE_URL}/payments/initiate`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(paymentData)
-                });
-
-                if (!response.ok) throw new Error('Payment initiation failed');
-
-                const result = await response.json();
-                
-                // Redirect to payment gateway
-                window.location.href = result.payment_url;
-                
-            } catch (error) {
-                console.error('Payment error:', error);
-                alert('Payment failed. Please try again.');
-            }
-        });
-    </script>
+  <script src="script.js"></script>
 </body>
 </html>

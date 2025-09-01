@@ -179,7 +179,7 @@
         }
 
         // Fetch backend stats (resources, languages, students)
-        fetch('https://your-backend-url.com/api/stats')
+        fetch(`${API_BASE_URL}/api/stats`)
             .then(res => res.json())
             .then(data => {
                 document.getElementById('resource-count').textContent = data.resources || '500+';

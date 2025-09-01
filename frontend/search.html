@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Search Resources - TransLearn</title>
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link rel="manifest" href="manifest.json">
 </head>
 <body>
   <header class="site-header">
@@ -15,26 +16,19 @@
         <a href="index.html">Home</a>
         <a href="dashboard.html">Dashboard</a>
         <a href="upload.html">Upload</a>
-        <a href="#" onclick="logout()">Logout</a>
+        <a href="#" onclick="clearCurrentUser(); window.location.href='login.html';">Logout</a>
       </nav>
     </div>
   </header>
 
   <main class="main">
     <div class="container">
-      <h1>Find Learning Resources</h1>
-
-      <!-- global status message target -->
-      <div id="statusMessage" style="display:none;"></div>
-
-      <form id="searchForm" class="search-form">
-        <input id="searchInput" name="q" type="search" placeholder="Search by title, subject, tags..." required />
-        <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> Search</button>
+      <h1>Search Resources</h1>
+      <form id="searchForm">
+        <input type="text" id="searchInput" placeholder="Enter keywords..." required>
+        <button type="submit" class="btn btn-primary">Search</button>
       </form>
-
-      <section id="searchResults" class="results">
-        <!-- results injected here -->
-      </section>
+      <div id="searchResults" class="resources-grid"></div>
     </div>
   </main>
 

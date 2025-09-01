@@ -1,188 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - TransLearn</title>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="manifest" href="manifest.json">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <meta name="theme-color" content="#4f46e5">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - TransLearn</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link rel="manifest" href="manifest.json">
 </head>
 <body>
-    <header>
-        <div class="container">
-            <div class="logo">
-                <i class="fas fa-graduation-cap"></i>
-                <span>TransLearn</span>
-            </div>
-            <nav>
-                <a href="dashboard.html" class="active">Dashboard</a>
-                <a href="search.html">Browse</a>
-                <a href="upload.html">Upload</a>
-                <a href="#" onclick="logout()">Logout</a>
-            </nav>
-        </div>
-    </header>
+  <header class="site-header">
+    <div class="container">
+      <div class="logo"><i class="fas fa-graduation-cap"></i> TransLearn</div>
+      <nav class="nav">
+        <a href="index.html">Home</a>
+        <a href="dashboard.html" class="active">Dashboard</a>
+        <a href="upload.html">Upload</a>
+        <a href="#" onclick="clearCurrentUser(); window.location.href='login.html';">Logout</a>
+      </nav>
+    </div>
+  </header>
 
-    <main class="main">
-        <div class="container">
-            <div class="dashboard-header">
-                <h1>Welcome back, <span id="userName">User</span>!</h1>
-                <p>Continue your learning journey</p>
-            </div>
+  <main class="main">
+    <div class="container">
+      <h1>Welcome, <span class="user-name">User</span></h1>
+      <div id="statusMessage" style="display:none;"></div>
 
-            <div class="dashboard-stats">
-                <div class="stat-card">
-                    <i class="fas fa-book"></i>
-                    <div class="stat-content">
-                        <span class="stat-number" id="resourcesCount">0</span>
-                        <span class="stat-label">Resources Accessed</span>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <i class="fas fa-star"></i>
-                    <div class="stat-content">
-                        <span class="stat-number" id="ratingCount">0</span>
-                        <span class="stat-label">Ratings Given</span>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <i class="fas fa-language"></i>
-                    <div class="stat-content">
-                        <span class="stat-number" id="languagesCount">1</span>
-                        <span class="stat-label">Languages</span>
-                    </div>
-                </div>
-            </div>
+      <section id="recommendedResources" class="resources-grid">
+        <!-- Recommended resources will be loaded here by script.js -->
+      </section>
+    </div>
+  </main>
 
-            <div class="dashboard-sections">
-                <section class="recent-resources">
-                    <h2>Recently Viewed</h2>
-                    <div class="resources-grid" id="recentResources">
-                        <!-- Recent resources will load here -->
-                    </div>
-                </section>
-
-                <section class="recommended-resources">
-                    <h2>Recommended for You</h2>
-                    <div class="resources-grid" id="recommendedResources">
-                        <!-- Recommended resources will load here -->
-                    </div>
-                </section>
-
-                <section class="quick-actions">
-                    <h2>Quick Actions</h2>
-                    <div class="actions-grid">
-                        <a href="search.html" class="action-card">
-                            <i class="fas fa-search"></i>
-                            <span>Browse Resources</span>
-                        </a>
-                        <a href="upload.html" class="action-card">
-                            <i class="fas fa-upload"></i>
-                            <span>Upload Content</span>
-                        </a>
-                        <a href="#" class="action-card" onclick="downloadOffline()">
-                            <i class="fas fa-download"></i>
-                            <span>Download for Offline</span>
-                        </a>
-                        <a href="#" class="action-card">
-                            <i class="fas fa-cog"></i>
-                            <span>Settings</span>
-                        </a>
-                    </div>
-                </section>
-            </div>
-        </div>
-    </main>
-
-    <script src="script.js"></script>
-    <script>
-        // Register Service Worker
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/service-worker.js')
-                .then(() => console.log('Service Worker registered'))
-                .catch(err => console.error('SW registration failed:', err));
-        }
-
-        document.addEventListener('DOMContentLoaded', loadDashboardData);
-
-        async function loadDashboardData() {
-            try {
-                const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
-                document.getElementById('userName').textContent = user.full_name || 'User';
-                
-                // Load user stats
-                const stats = await fetchUserStats();
-                document.getElementById('resourcesCount').textContent = stats.resources_accessed || 0;
-                document.getElementById('ratingCount').textContent = stats.ratings_given || 0;
-                document.getElementById('languagesCount').textContent = stats.languages_used || 1;
-
-                // Load recent & recommended resources
-                await loadRecentResources();
-                await loadRecommendedResources();
-            } catch (error) {
-                console.error('Error loading dashboard:', error);
-            }
-        }
-
-        async function fetchUserStats() {
-            // Mock data - replace with API call
-            return { resources_accessed: 12, ratings_given: 5, languages_used: 2 };
-        }
-
-        async function loadRecentResources() {
-            const recent = [
-                { title: "Mathematics Grade 7", description: "Algebra basics", subject: "Math", rating: 4.5, type: "pdf" }
-            ];
-            const container = document.getElementById('recentResources');
-            container.innerHTML = recent.map(r => `
-                <div class="resource-card">
-                    <div class="resource-icon"><i class="fas fa-file-${r.type}"></i></div>
-                    <div class="resource-content">
-                        <h3>${r.title}</h3>
-                        <p>${r.description}</p>
-                        <div class="resource-meta">
-                            <span class="subject">${r.subject}</span>
-                            <span class="rating">⭐ ${r.rating}</span>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        async function loadRecommendedResources() {
-            const resources = [
-                { title: "Science Grade 8", description: "Biology & Chemistry", subject: "Science", rating: 4.2 },
-                { title: "English Literature", description: "Poetry and prose", subject: "English", rating: 4.7 }
-            ];
-            const container = document.getElementById('recommendedResources');
-            container.innerHTML = resources.map(r => `
-                <div class="resource-card">
-                    <div class="resource-icon"><i class="fas fa-file-alt"></i></div>
-                    <div class="resource-content">
-                        <h3>${r.title}</h3>
-                        <p>${r.description}</p>
-                        <div class="resource-meta">
-                            <span class="subject">${r.subject}</span>
-                            <span class="rating">⭐ ${r.rating}</span>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function logout() {
-            localStorage.removeItem('currentUser');
-            window.location.href = '/login.html';
-        }
-
-        function downloadOffline() {
-            if (navigator.serviceWorker && navigator.serviceWorker.controller) {
-                navigator.serviceWorker.controller.postMessage({ action: 'downloadOffline' });
-                alert('Resources will be cached for offline use.');
-            }
-        }
-    </script>
+  <script src="script.js"></script>
 </body>
 </html>
