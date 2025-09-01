@@ -161,7 +161,7 @@ async function handleSignup(evt) {
 }
 
 // =======================
-// Login
+// Login (UPDATED - handles 422 error)
 // =======================
 async function handleLogin(evt) {
   evt.preventDefault();
@@ -178,26 +178,104 @@ async function handleLogin(evt) {
 
   try {
     showStatus('Signing in...', 'loading');
-    const res = await fetch(`${API_BASE_URL}/users/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
-    });
+    
+    // Try different payload formats - backend might expect different field names
+    const payloads = [
+      { email: email, password: password }, // Most common
+      { username: email, password: password }, // Some APIs use username
+      { email: email, password: password, grant_type: 'password' }, // OAuth style
+      { user: { email: email, password: password } } // Nested format
+    ];
 
-    const body = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      const err = body.detail || body.message || 'Login failed';
-      showStatus(err, 'error');
+    let responseData = null;
+    let successfulFormat = null;
+
+    // Try each payload format until one works
+    for (const payload of payloads) {
+      try {
+        console.log('Trying login with payload:', payload);
+        const res = await fetch(`${API_BASE_URL}/users/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        // Clone response to read without consuming
+        const responseClone = res.clone();
+        const responseText = await responseClone.text();
+        console.log('Response status:', res.status, 'Response:', responseText);
+
+        if (res.ok) {
+          responseData = JSON.parse(responseText);
+          successfulFormat = payload;
+          console.log('Login successful with format:', successfulFormat);
+          break;
+        }
+        
+        // If it's a 422, try the next format
+        if (res.status === 422) {
+          console.log('422 error with format, trying next...', payload);
+          continue;
+        }
+
+        // For other errors, show message
+        try {
+          const errorBody = JSON.parse(responseText);
+          const errMsg = errorBody.detail || errorBody.message || `HTTP ${res.status}`;
+          if (res.status !== 422) {
+            showStatus(`Login failed: ${errMsg}`, 'error');
+            return;
+          }
+        } catch (parseError) {
+          console.error('Error parsing response:', parseError);
+          if (res.status !== 422) {
+            showStatus(`Login failed: HTTP ${res.status}`, 'error');
+            return;
+          }
+        }
+      } catch (err) {
+        console.error('Network error with format:', payload, err);
+        continue;
+      }
+    }
+
+    if (!responseData) {
+      showStatus('Login failed. Please check your credentials or try a different format.', 'error');
       return;
     }
 
-    // backend may return the user object directly
-    const user = body;
-    saveCurrentUser(user);
+    // Extract user data from different possible response formats
+    let userData = null;
+    if (responseData.user) {
+      userData = responseData.user; // { user: { ... } }
+    } else if (responseData.data) {
+      userData = responseData.data; // { data: { ... } }
+    } else if (responseData.access_token) {
+      // JWT token response - create minimal user object
+      userData = { 
+        email: email,
+        token: responseData.access_token,
+        // Add other fields if available
+        ...(responseData.user || {})
+      };
+    } else {
+      userData = responseData; // Direct user object
+    }
+
+    // Ensure we have basic user info
+    if (!userData.email && email) {
+      userData.email = email;
+    }
+
+    saveCurrentUser(userData);
     showStatus('Login successful! Redirecting...', 'success');
-    setTimeout(() => window.location.href = 'dashboard.html', 800);
+    
+    setTimeout(() => {
+      window.location.href = 'dashboard.html';
+    }, 800);
+
   } catch (err) {
-    console.error(err);
+    console.error('Login error:', err);
     showStatus('Network error. Try again later.', 'error');
   }
 }
@@ -432,9 +510,13 @@ async function loadHomepageStats() {
   } catch (e) {
     console.error('Failed to load stats:', e);
     // Set default values if API fails
-    document.getElementById('resource-count').textContent = '500+';
-    document.getElementById('language-count').textContent = '10+';
-    document.getElementById('student-count').textContent = '1,000+';
+    const resourceCount = document.getElementById('resource-count');
+    const languageCount = document.getElementById('language-count');
+    const studentCount = document.getElementById('student-count');
+    
+    if (resourceCount) resourceCount.textContent = '500+';
+    if (languageCount) languageCount.textContent = '10+';
+    if (studentCount) studentCount.textContent = '1,000+';
   }
 }
 
