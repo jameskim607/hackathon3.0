@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subscription Plans - TransLearn LMS</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .subscription-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .plans-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+        }
+        
+        .plan-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .plan-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        
+        .plan-card.featured {
+            border-color: #007bff;
+            transform: scale(1.05);
+        }
+        
+        .plan-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        .plan-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .plan-price {
+            font-size: 48px;
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 5px;
+        }
+        
+        .plan-price .currency {
+            font-size: 24px;
+            vertical-align: top;
+        }
+        
+        .plan-price .period {
+            font-size: 16px;
+            color: #666;
+            font-weight: normal;
+        }
+        
+        .plan-features {
+            list-style: none;
+            padding: 0;
+            margin: 25px 0;
+        }
+        
+        .plan-features li {
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+        }
+        
+        .plan-features li:last-child {
+            border-bottom: none;
+        }
+        
+        .plan-features li::before {
+            content: "✓";
+            color: #28a745;
+            font-weight: bold;
+            margin-right: 10px;
+            font-size: 18px;
+        }
+        
+        .plan-upload-limit {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .upload-count {
+            font-size: 32px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        
+        .btn-upgrade {
+            width: 100%;
+            padding: 15px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        
+        .btn-upgrade:hover {
+            background: #0056b3;
+        }
+        
+        .btn-upgrade:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .current-plan {
+            background: #28a745;
+        }
+        
+        .current-plan:hover {
+            background: #218838;
+        }
+        
+        .featured-badge {
+            position: absolute;
+            top: -15px;
+            right: 20px;
+            background: #007bff;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .comparison-table {
+            margin: 40px 0;
+            overflow-x: auto;
+        }
+        
+        .comparison-table table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .comparison-table th,
+        .comparison-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .comparison-table th {
+            background: #f8f9fa;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .comparison-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .status-message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 10px;
+            color: white;
+            font-weight: bold;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .status.success {
+            background: #28a745;
+        }
+        
+        .status.error {
+            background: #dc3545;
+        }
+        
+        .status.loading {
+            background: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="nav-container">
+                <div class="logo">
+                    <h1>TransLearn LMS</h1>
+                </div>
+                <ul class="nav-links">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="dashboard.html">Dashboard</a></li>
+                    <li><a href="search.html">Search</a></li>
+                    <li><a href="upload.html">Upload</a></li>
+                    <li><a href="subscription.html" class="active">Plans</a></li>
+                    <li><a href="#" id="logoutBtn">Logout</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <main class="subscription-container">
+        <div class="hero">
+            <h1>Choose Your Plan</h1>
+            <p>Unlock unlimited educational resources and AI-powered features</p>
+        </div>
+
+        <div class="plans-grid" id="plansGrid">
+            <!-- Plans will be loaded dynamically -->
+        </div>
+
+        <div class="comparison-table">
+            <h2>Feature Comparison</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Feature</th>
+                        <th>Free</th>
+                        <th>Basic</th>
+                        <th>Premium</th>
+                        <th>Enterprise</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Monthly Uploads</td>
+                        <td>3</td>
+                        <td>15</td>
+                        <td>50</td>
+                        <td>200</td>
+                    </tr>
+                    <tr>
+                        <td>AI Translation</td>
+                        <td>❌</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                    </tr>
+                    <tr>
+                        <td>Audio Generation</td>
+                        <td>❌</td>
+                        <td>❌</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                    </tr>
+                    <tr>
+                        <td>Analytics</td>
+                        <td>❌</td>
+                        <td>❌</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                    </tr>
+                    <tr>
+                        <td>Priority Support</td>
+                        <td>❌</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                    </tr>
+                    <tr>
+                        <td>Custom Integrations</td>
+                        <td>❌</td>
+                        <td>❌</td>
+                        <td>❌</td>
+                        <td>✅</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <div id="statusMessage" class="status-message"></div>
+
+    <script src="script.js"></script>
+    <script>
+        // Subscription-specific functionality
+        let currentUser = null;
+        let availablePlans = {};
+
+        async function loadSubscriptionPlans() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/subscriptions/plans`);
+                if (response.ok) {
+                    availablePlans = await response.json();
+                    displayPlans();
+                } else {
+                    throw new Error('Failed to load plans');
+                }
+            } catch (error) {
+                console.error('Error loading plans:', error);
+                showStatus('Failed to load subscription plans', 'error');
+            }
+        }
+
+        function displayPlans() {
+            const plansGrid = document.getElementById('plansGrid');
+            const plans = availablePlans.plans || {};
+            
+            plansGrid.innerHTML = '';
+            
+            Object.entries(plans).forEach(([planKey, plan]) => {
+                const isCurrentPlan = currentUser && currentUser.subscription_plan === planKey;
+                const isFeatured = planKey === 'premium';
+                
+                const planCard = document.createElement('div');
+                planCard.className = `plan-card ${isFeatured ? 'featured' : ''} ${isCurrentPlan ? 'current' : ''}`;
+                
+                if (isFeatured) {
+                    planCard.innerHTML += '<div class="featured-badge">Most Popular</div>';
+                }
+                
+                planCard.innerHTML += `
+                    <div class="plan-header">
+                        <div class="plan-name">${plan.name}</div>
+                        <div class="plan-price">
+                            <span class="currency">$</span>${plan.price}
+                            <span class="period">/month</span>
+                        </div>
+                    </div>
+                    
+                    <div class="plan-upload-limit">
+                        <div class="upload-count">${plan.upload_limit}</div>
+                        <div>uploads per month</div>
+                    </div>
+                    
+                    <ul class="plan-features">
+                        ${plan.features.map(feature => `<li>${feature}</li>`).join('')}
+                    </ul>
+                    
+                    <button class="btn-upgrade ${isCurrentPlan ? 'current-plan' : ''}" 
+                            onclick="upgradeToPlan('${planKey}')"
+                            ${isCurrentPlan ? 'disabled' : ''}>
+                        ${isCurrentPlan ? 'Current Plan' : 'Upgrade Now'}
+                    </button>
+                `;
+                
+                plansGrid.appendChild(planCard);
+            });
+        }
+
+        async function upgradeToPlan(planName) {
+            if (!currentUser) {
+                showStatus('Please log in to upgrade your plan', 'error');
+                return;
+            }
+
+            try {
+                showStatus('Initiating payment...', 'loading');
+                
+                const response = await fetch(`${API_BASE_URL}/subscriptions/upgrade`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        plan_name: planName,
+                        user_id: currentUser.id,
+                        email: currentUser.email,
+                        phone: currentUser.phone
+                    })
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    
+                    if (result.payment_url) {
+                        showStatus('Redirecting to payment...', 'success');
+                        // Redirect to payment gateway
+                        setTimeout(() => {
+                            window.location.href = result.payment_url;
+                        }, 2000);
+                    } else {
+                        showStatus('Payment initiated successfully', 'success');
+                    }
+                } else {
+                    throw new Error('Failed to initiate payment');
+                }
+            } catch (error) {
+                console.error('Payment error:', error);
+                showStatus('Failed to initiate payment: ' + error.message, 'error');
+            }
+        }
+
+        function showStatus(message, type = 'success') {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.textContent = message;
+            statusDiv.className = `status-message status ${type}`;
+            statusDiv.style.display = 'block';
+
+            if (type !== 'loading') {
+                setTimeout(() => {
+                    statusDiv.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Get current user
+            const userStr = localStorage.getItem('currentUser');
+            if (userStr) {
+                currentUser = JSON.parse(userStr);
+            }
+
+            // Load subscription plans
+            await loadSubscriptionPlans();
+
+            // Check user's current upload limit
+            if (currentUser) {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/users/${currentUser.id}/upload-limit`);
+                    if (response.ok) {
+                        const limitInfo = await response.json();
+                        console.log('User upload limit:', limitInfo);
+                    }
+                } catch (error) {
+                    console.error('Error checking upload limit:', error);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

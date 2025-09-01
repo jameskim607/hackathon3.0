@@ -6,6 +6,51 @@
   <title>Upload Resource - TransLearn</title>
   <link rel="stylesheet" href="styles.css">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    .upload-limit-info {
+      margin-bottom: 20px;
+      padding: 15px;
+      border-radius: 8px;
+      font-weight: bold;
+    }
+    
+    .limit-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .limit-info.limit-ok {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    
+    .limit-info.limit-reached {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    
+    .upgrade-link {
+      margin-left: auto;
+      background: #007bff;
+      color: white;
+      padding: 5px 15px;
+      border-radius: 20px;
+      text-decoration: none;
+      font-size: 14px;
+      transition: background 0.3s ease;
+    }
+    
+    .upgrade-link:hover {
+      background: #0056b3;
+    }
+    
+    .status.loading {
+      background: #007bff;
+    }
+  </style>
 </head>
 <body>
   <header>
@@ -27,6 +72,7 @@
     <div class="container">
       <div class="upload-form">
         <h1>Share Your Knowledge</h1>
+        <div id="uploadLimitInfo" class="upload-limit-info" style="display:none;"></div>
         <div id="statusMessage" class="status" style="display:none;"></div>
         
         <form id="uploadForm">
@@ -122,5 +168,172 @@
   </main>
 
   <script src="script.js"></script>
+  <script>
+    let currentUser = null;
+    let selectedFile = null;
+
+    // Check upload limit before allowing upload
+    async function checkUploadLimit() {
+      if (!currentUser) return;
+      
+      try {
+        const response = await fetch(`${API_BASE_URL}/users/${currentUser.id}/upload-limit`);
+        if (response.ok) {
+          const limitInfo = await response.json();
+          displayUploadLimitInfo(limitInfo);
+          
+          // Disable upload if limit reached
+          if (!limitInfo.can_upload) {
+            document.querySelector('button[type="submit"]').disabled = true;
+            showStatus(limitInfo.message, 'error');
+          }
+        }
+      } catch (error) {
+        console.error('Error checking upload limit:', error);
+      }
+    }
+
+    function displayUploadLimitInfo(limitInfo) {
+      const limitDiv = document.getElementById('uploadLimitInfo');
+      const isLimitReached = !limitInfo.can_upload;
+      
+      limitDiv.innerHTML = `
+        <div class="limit-info ${isLimitReached ? 'limit-reached' : 'limit-ok'}">
+          <i class="fas fa-${isLimitReached ? 'exclamation-triangle' : 'info-circle'}"></i>
+          <span>
+            ${isLimitReached ? 
+              limitInfo.message : 
+              `Uploads: ${limitInfo.current_uploads}/${limitInfo.total_limit} (${limitInfo.remaining_uploads} remaining)`
+            }
+          </span>
+          ${isLimitReached ? 
+            `<a href="subscription.html" class="upgrade-link">Upgrade Plan</a>` : 
+            ''
+          }
+        </div>
+      `;
+      limitDiv.style.display = 'block';
+    }
+
+    // File upload handling
+    document.getElementById('fileUploadArea').addEventListener('click', () => {
+      document.getElementById('resourceFile').click();
+    });
+
+    document.getElementById('resourceFile').addEventListener('change', handleFileSelect);
+
+    function handleFileSelect(event) {
+      const file = event.target.files[0];
+      if (file) {
+        selectedFile = file;
+        displayFileInfo(file);
+      }
+    }
+
+    function displayFileInfo(file) {
+      const fileInfo = document.getElementById('fileInfo');
+      const fileName = document.getElementById('fileName');
+      const fileSize = document.getElementById('fileSize');
+      
+      fileName.textContent = file.name;
+      fileSize.textContent = `(${(file.size / (1024 * 1024)).toFixed(2)} MB)`;
+      
+      fileInfo.style.display = 'block';
+      document.getElementById('fileUploadArea').style.display = 'none';
+    }
+
+    function removeFile() {
+      selectedFile = null;
+      document.getElementById('fileInfo').style.display = 'none';
+      document.getElementById('fileUploadArea').style.display = 'block';
+      document.getElementById('resourceFile').value = '';
+    }
+
+    // Form submission with upload limit check
+    document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      if (!currentUser) {
+        showStatus('Please log in to upload resources', 'error');
+        return;
+      }
+
+      // Check upload limit again before submission
+      try {
+        const response = await fetch(`${API_BASE_URL}/users/${currentUser.id}/upload-limit`);
+        if (response.ok) {
+          const limitInfo = await response.json();
+          if (!limitInfo.can_upload) {
+            showStatus(limitInfo.message, 'error');
+            return;
+          }
+        }
+      } catch (error) {
+        console.error('Error checking upload limit:', error);
+        showStatus('Failed to verify upload limit', 'error');
+        return;
+      }
+
+      // Proceed with upload
+      await handleUpload(e);
+    });
+
+    async function handleUpload(evt) {
+      try {
+        showStatus('Uploading resource...', 'loading');
+        
+        const formData = new FormData(evt.target);
+        formData.append('teacher_id', currentUser.id);
+        
+        const response = await fetch(`${API_BASE_URL}/resources/upload`, {
+          method: 'POST',
+          body: formData
+        });
+
+        if (response.ok) {
+          showStatus('Resource uploaded successfully!', 'success');
+          evt.target.reset();
+          removeFile();
+          
+          // Refresh upload limit info
+          setTimeout(() => checkUploadLimit(), 1000);
+        } else {
+          const error = await response.json();
+          throw new Error(error.detail || 'Upload failed');
+        }
+        
+      } catch (error) {
+        console.error('Upload error:', error);
+        showStatus('Upload failed: ' + error.message, 'error');
+      }
+    }
+
+    function showStatus(message, type = 'success') {
+      const statusDiv = document.getElementById('statusMessage');
+      statusDiv.textContent = message;
+      statusDiv.className = `status ${type}`;
+      statusDiv.style.display = 'block';
+
+      if (type !== 'loading') {
+        setTimeout(() => {
+          statusDiv.style.display = 'none';
+        }, 5000);
+      }
+    }
+
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Get current user
+      const userStr = localStorage.getItem('currentUser');
+      if (userStr) {
+        currentUser = JSON.parse(userStr);
+        
+        // Check upload limit
+        await checkUploadLimit();
+      } else {
+        window.location.href = 'login.html';
+      }
+    });
+  </script>
 </body>
 </html>

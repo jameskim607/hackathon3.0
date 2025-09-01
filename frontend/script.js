@@ -2,15 +2,31 @@
 // script.js - Backend Crash Resistant Version
 // =======================
 
-const API_BASE_URL = 'https://web-production-82449.up.railway.app';
+const API_BASE_URL = 'https://web-production-02449.up.railway.app';
 let backendStatus = 'unknown'; // unknown, healthy, crashing, offline
+
+// =======================
+// Test Backend Connection
+// =======================
+async function testBackendConnection() {
+  try {
+    console.log('Testing backend connection...');
+    const response = await fetch(`${API_BASE_URL}/`);
+    const data = await response.json();
+    console.log('Backend response:', data);
+    return true;
+  } catch (error) {
+    console.error('Backend connection failed:', error);
+    return false;
+  }
+}
 
 // =======================
 // Check Backend Health
 // =======================
 async function checkBackendHealth() {
   try {
-    const response = await fetch(`${API_BASE_URL}/health`, {
+    const response = await fetch(`${API_BASE_URL}/`, {
       signal: AbortSignal.timeout(5000) // 5 second timeout
     });
     
@@ -232,7 +248,7 @@ async function handleSignup(evt) {
     const formData = new FormData(evt.target);
     const payload = Object.fromEntries(formData);
     
-    const response = await safeFetch(`${API_BASE_URL}/users/signup`, {
+    const response = await safeFetch(`${API_BASE_URL}/users/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
@@ -269,7 +285,7 @@ async function handleSearch(evt) {
     if (subject) params.append('subject', subject);
     if (grade) params.append('grade', grade);
     
-    const response = await safeFetch(`${API_BASE_URL}/resources/search?${params}`);
+    const response = await safeFetch(`${API_BASE_URL}/resources?${params}`);
     
     // Display search results
     displaySearchResults(response);
@@ -408,7 +424,11 @@ function updateDashboard(data) {
 // Initialize
 // =======================
 document.addEventListener('DOMContentLoaded', async () => {
-  // Check backend status first
+  // Test backend connection first
+  console.log('Testing backend connection...');
+  const connectionTest = await testBackendConnection();
+  
+  // Check backend status
   const isHealthy = await checkBackendHealth();
   
   if (!isHealthy) {

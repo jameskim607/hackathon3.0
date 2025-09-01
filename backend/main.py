@@ -10,6 +10,7 @@ import asyncpg
 import logging
 from database import get_db_connection
 from payment import payment_processor
+from ai_translator import ai_translator
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -215,6 +216,11 @@ async def upload_resource(
 ):
     conn = await get_db_connection()
     try:
+        # Check upload limit before proceeding
+        limit_check = await conn.fetchrow("SELECT * FROM check_upload_limit($1)", teacher_id)
+        if not limit_check or not limit_check['can_upload']:
+            raise HTTPException(status_code=403, detail=limit_check['message'] if limit_check else "Upload limit reached")
+        
         # Handle file upload (simplified)
         file_url = None
         file_type = None
@@ -233,8 +239,13 @@ async def upload_resource(
             RETURNING id
         """, teacher_id, title, description, subject, grade_level, language, price, tags, file_url, file_type)
         
+        # Increment upload count after successful upload
+        await conn.execute("SELECT increment_upload_count($1)", teacher_id)
+        
         return {"message": "Resource uploaded successfully", "resource_id": resource_id}
         
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
     finally:
@@ -259,6 +270,119 @@ async def verify_payment(transaction_id: str):
     try:
         result = await payment_processor.verify_payment(transaction_id)
         return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# =======================
+# Subscription & Payment Management
+# =======================
+@app.get("/subscriptions/plans")
+async def get_subscription_plans():
+    """Get available subscription plans"""
+    try:
+        plans = payment_processor.get_subscription_plans()
+        return {"plans": plans}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/subscriptions/upgrade")
+async def upgrade_subscription(plan_name: str, user_id: int, email: str, phone: Optional[str] = None):
+    """Initiate subscription upgrade payment"""
+    try:
+        result = await payment_processor.initiate_subscription_payment(plan_name, email, user_id, phone)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/users/{user_id}/upload-limit")
+async def check_user_upload_limit(user_id: int):
+    """Check user's upload limit based on subscription using database function"""
+    conn = await get_db_connection()
+    try:
+        # Use the database function to check upload limit
+        result = await conn.fetchrow("SELECT * FROM check_upload_limit($1)", user_id)
+        if not result:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Get user's subscription plan
+        user = await conn.fetchrow("SELECT subscription_plan FROM users WHERE id = $1", user_id)
+        subscription_plan = user.get('subscription_plan', 'free') if user else 'free'
+        
+        return {
+            "user_id": user_id,
+            "subscription_plan": subscription_plan,
+            "can_upload": result['can_upload'],
+            "current_uploads": result['current_uploads'],
+            "upload_limit": result['upload_limit'],
+            "remaining_uploads": result['remaining_uploads'],
+            "message": result['message']
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        await conn.close()
+
+@app.post("/users/{user_id}/increment-upload")
+async def increment_user_upload_count(user_id: int):
+    """Increment user's upload count after successful upload"""
+    conn = await get_db_connection()
+    try:
+        # Use the database function to increment upload count
+        result = await conn.fetchval("SELECT increment_upload_count($1)", user_id)
+        
+        if result:
+            return {"message": "Upload count incremented successfully", "can_upload": True}
+        else:
+            return {"message": "Upload limit reached", "can_upload": False}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        await conn.close()
+
+# =======================
+# AI Translation Services
+# =======================
+@app.post("/translate/text")
+async def translate_text(text: str, target_language: str, source_language: str = "en"):
+    """Translate text using AI"""
+    try:
+        if len(text) > 1000:
+            raise HTTPException(status_code=400, detail="Text too long. Maximum 1000 characters allowed.")
+        
+        result = await ai_translator.translate_text(text, target_language, source_language)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/translate/resource/{resource_id}")
+async def translate_resource(resource_id: int, target_language: str, source_language: str = "en"):
+    """Translate an entire educational resource"""
+    try:
+        result = await ai_translator.translate_resource(resource_id, target_language, source_language)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/translate/languages")
+async def get_supported_languages():
+    """Get list of supported languages for translation"""
+    try:
+        languages = await ai_translator.get_supported_languages()
+        return {"languages": languages}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/translate/summary")
+async def generate_summary(text: str, language: str = "en"):
+    """Generate a summary of text"""
+    try:
+        if len(text) > 2000:
+            raise HTTPException(status_code=400, detail="Text too long. Maximum 2000 characters allowed.")
+        
+        summary = await ai_translator.generate_summary(text, language)
+        return {"summary": summary, "original_length": len(text), "summary_length": len(summary)}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

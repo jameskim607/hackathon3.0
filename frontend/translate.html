@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Translation - TransLearn LMS</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .translate-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .translation-form {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+        
+        .form-group textarea {
+            min-height: 150px;
+            resize: vertical;
+            font-family: inherit;
+        }
+        
+        .language-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .btn-translate {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            width: 100%;
+        }
+        
+        .btn-translate:hover {
+            background: #0056b3;
+        }
+        
+        .btn-translate:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .translation-result {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-top: 30px;
+            display: none;
+        }
+        
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e1e5e9;
+        }
+        
+        .language-pair {
+            font-size: 18px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        
+        .confidence-score {
+            background: #28a745;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+        
+        .translated-text {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            font-size: 16px;
+            line-height: 1.6;
+            margin: 20px 0;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .btn-action {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-copy {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-copy:hover {
+            background: #5a6268;
+        }
+        
+        .btn-summary {
+            background: #17a2b8;
+            color: white;
+        }
+        
+        .btn-summary:hover {
+            background: #138496;
+        }
+        
+        .btn-audio {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-audio:hover {
+            background: #218838;
+        }
+        
+        .resource-translation {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-top: 30px;
+        }
+        
+        .resource-selector {
+            margin-bottom: 20px;
+        }
+        
+        .status-message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 10px;
+            color: white;
+            font-weight: bold;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .status.success {
+            background: #28a745;
+        }
+        
+        .status.error {
+            background: #dc3545;
+        }
+        
+        .status.loading {
+            background: #007bff;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #007bff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="nav-container">
+                <div class="logo">
+                    <h1>TransLearn LMS</h1>
+                </div>
+                <ul class="nav-links">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="dashboard.html">Dashboard</a></li>
+                    <li><a href="search.html">Search</a></li>
+                    <li><a href="upload.html">Upload</a></li>
+                    <li><a href="subscription.html">Plans</a></li>
+                    <li><a href="translate.html" class="active">Translate</a></li>
+                    <li><a href="#" id="logoutBtn">Logout</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <main class="translate-container">
+        <div class="hero">
+            <h1>AI-Powered Translation</h1>
+            <p>Translate educational content into multiple languages using advanced AI models</p>
+        </div>
+
+        <!-- Text Translation Form -->
+        <div class="translation-form">
+            <h2>Translate Text</h2>
+            <form id="translateForm">
+                <div class="language-selector">
+                    <div class="form-group">
+                        <label for="sourceLanguage">From Language</label>
+                        <select id="sourceLanguage" required>
+                            <option value="en">English</option>
+                            <option value="sw">Swahili</option>
+                            <option value="fr">French</option>
+                            <option value="ar">Arabic</option>
+                            <option value="zh">Chinese</option>
+                            <option value="es">Spanish</option>
+                            <option value="pt">Portuguese</option>
+                            <option value="de">German</option>
+                            <option value="hi">Hindi</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="targetLanguage">To Language</label>
+                        <select id="targetLanguage" required>
+                            <option value="sw">Swahili</option>
+                            <option value="en">English</option>
+                            <option value="fr">French</option>
+                            <option value="ar">Arabic</option>
+                            <option value="zh">Chinese</option>
+                            <option value="es">Spanish</option>
+                            <option value="pt">Portuguese</option>
+                            <option value="de">German</option>
+                            <option value="hi">Hindi</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="sourceText">Text to Translate</label>
+                    <textarea id="sourceText" placeholder="Enter the text you want to translate (max 1000 characters)" maxlength="1000" required></textarea>
+                    <div style="text-align: right; margin-top: 5px; color: #666;">
+                        <span id="charCount">0</span>/1000
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-translate" id="translateBtn">
+                    <span class="loading-spinner" style="display: none;"></span>
+                    Translate Text
+                </button>
+            </form>
+        </div>
+
+        <!-- Translation Result -->
+        <div class="translation-result" id="translationResult">
+            <div class="result-header">
+                <div class="language-pair" id="languagePair"></div>
+                <div class="confidence-score" id="confidenceScore"></div>
+            </div>
+            
+            <div class="translated-text" id="translatedText"></div>
+            
+            <div class="action-buttons">
+                <button class="btn-action btn-copy" onclick="copyTranslation()">Copy Text</button>
+                <button class="btn-action btn-summary" onclick="generateSummary()">Generate Summary</button>
+                <button class="btn-action btn-audio" onclick="generateAudio()">Generate Audio</button>
+            </div>
+        </div>
+
+        <!-- Resource Translation -->
+        <div class="resource-translation">
+            <h2>Translate Educational Resource</h2>
+            <div class="resource-selector">
+                <div class="form-group">
+                    <label for="resourceSelect">Select Resource</label>
+                    <select id="resourceSelect">
+                        <option value="">Choose a resource to translate</option>
+                        <!-- Resources will be loaded dynamically -->
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="resourceTargetLanguage">Target Language</label>
+                    <select id="resourceTargetLanguage">
+                        <option value="sw">Swahili</option>
+                        <option value="fr">French</option>
+                        <option value="ar">Arabic</option>
+                        <option value="zh">Chinese</option>
+                        <option value="es">Spanish</option>
+                        <option value="pt">Portuguese</option>
+                        <option value="de">German</option>
+                        <option value="hi">Hindi</option>
+                    </select>
+                </div>
+                
+                <button class="btn-translate" onclick="translateResource()">Translate Resource</button>
+            </div>
+        </div>
+    </main>
+
+    <div id="statusMessage" class="status-message"></div>
+
+    <script src="script.js"></script>
+    <script>
+        let currentUser = null;
+        let userResources = [];
+
+        // Character counter for text input
+        document.getElementById('sourceText').addEventListener('input', function() {
+            const charCount = this.value.length;
+            document.getElementById('charCount').textContent = charCount;
+        });
+
+        // Handle text translation form
+        document.getElementById('translateForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!currentUser) {
+                showStatus('Please log in to use translation features', 'error');
+                return;
+            }
+
+            const sourceLanguage = document.getElementById('sourceLanguage').value;
+            const targetLanguage = document.getElementById('targetLanguage').value;
+            const sourceText = document.getElementById('sourceText').value.trim();
+
+            if (!sourceText) {
+                showStatus('Please enter text to translate', 'error');
+                return;
+            }
+
+            if (sourceLanguage === targetLanguage) {
+                showStatus('Source and target languages must be different', 'error');
+                return;
+            }
+
+            await translateText(sourceText, sourceLanguage, targetLanguage);
+        });
+
+        async function translateText(text, sourceLang, targetLang) {
+            const translateBtn = document.getElementById('translateBtn');
+            const spinner = translateBtn.querySelector('.loading-spinner');
+            
+            try {
+                // Show loading state
+                translateBtn.disabled = true;
+                spinner.style.display = 'inline-block';
+                translateBtn.textContent = 'Translating...';
+                
+                showStatus('Translating text...', 'loading');
+                
+                const response = await fetch(`${API_BASE_URL}/translate/text`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        text: text,
+                        target_language: targetLang,
+                        source_language: sourceLang
+                    })
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    displayTranslationResult(result);
+                    showStatus('Translation completed!', 'success');
+                } else {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Translation failed');
+                }
+                
+            } catch (error) {
+                console.error('Translation error:', error);
+                showStatus('Translation failed: ' + error.message, 'error');
+            } finally {
+                // Reset button state
+                translateBtn.disabled = false;
+                spinner.style.display = 'none';
+                translateBtn.textContent = 'Translate Text';
+            }
+        }
+
+        function displayTranslationResult(result) {
+            const resultDiv = document.getElementById('translationResult');
+            const languagePair = document.getElementById('languagePair');
+            const confidenceScore = document.getElementById('confidenceScore');
+            const translatedText = document.getElementById('translatedText');
+            
+            // Update language pair display
+            const sourceLangNames = {
+                'en': 'English', 'sw': 'Swahili', 'fr': 'French', 'ar': 'Arabic',
+                'zh': 'Chinese', 'es': 'Spanish', 'pt': 'Portuguese', 'de': 'German', 'hi': 'Hindi'
+            };
+            
+            languagePair.textContent = `${sourceLangNames[result.source_language]} → ${sourceLangNames[result.target_language]}`;
+            
+            // Update confidence score
+            confidenceScore.textContent = `${Math.round(result.confidence * 100)}%`;
+            
+            // Update translated text
+            translatedText.textContent = result.translated_text;
+            
+            // Show result
+            resultDiv.style.display = 'block';
+        }
+
+        async function translateResource() {
+            const resourceId = document.getElementById('resourceSelect').value;
+            const targetLanguage = document.getElementById('resourceTargetLanguage').value;
+            
+            if (!resourceId) {
+                showStatus('Please select a resource to translate', 'error');
+                return;
+            }
+
+            try {
+                showStatus('Translating resource...', 'loading');
+                
+                const response = await fetch(`${API_BASE_URL}/translate/resource/${resourceId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        target_language: targetLanguage,
+                        source_language: 'en'
+                    })
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    showStatus(`Resource translated to ${targetLanguage}!`, 'success');
+                    console.log('Resource translation result:', result);
+                } else {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Resource translation failed');
+                }
+                
+            } catch (error) {
+                console.error('Resource translation error:', error);
+                showStatus('Resource translation failed: ' + error.message, 'error');
+            }
+        }
+
+        function copyTranslation() {
+            const translatedText = document.getElementById('translatedText').textContent;
+            navigator.clipboard.writeText(translatedText).then(() => {
+                showStatus('Text copied to clipboard!', 'success');
+            }).catch(() => {
+                showStatus('Failed to copy text', 'error');
+            });
+        }
+
+        async function generateSummary() {
+            const translatedText = document.getElementById('translatedText').textContent;
+            
+            try {
+                showStatus('Generating summary...', 'loading');
+                
+                const response = await fetch(`${API_BASE_URL}/translate/summary`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        text: translatedText,
+                        language: document.getElementById('targetLanguage').value
+                    })
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    showStatus('Summary generated!', 'success');
+                    console.log('Summary result:', result);
+                } else {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Summary generation failed');
+                }
+                
+            } catch (error) {
+                console.error('Summary generation error:', error);
+                showStatus('Summary generation failed: ' + error.message, 'error');
+            }
+        }
+
+        function generateAudio() {
+            showStatus('Audio generation coming soon!', 'success');
+        }
+
+        async function loadUserResources() {
+            if (!currentUser) return;
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/resources?teacher_id=${currentUser.id}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    userResources = data.resources || [];
+                    populateResourceSelect();
+                }
+            } catch (error) {
+                console.error('Error loading user resources:', error);
+            }
+        }
+
+        function populateResourceSelect() {
+            const select = document.getElementById('resourceSelect');
+            select.innerHTML = '<option value="">Choose a resource to translate</option>';
+            
+            userResources.forEach(resource => {
+                const option = document.createElement('option');
+                option.value = resource.id;
+                option.textContent = resource.title;
+                select.appendChild(option);
+            });
+        }
+
+        function showStatus(message, type = 'success') {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.textContent = message;
+            statusDiv.className = `status-message status ${type}`;
+            statusDiv.style.display = 'block';
+
+            if (type !== 'loading') {
+                setTimeout(() => {
+                    statusDiv.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Get current user
+            const userStr = localStorage.getItem('currentUser');
+            if (userStr) {
+                currentUser = JSON.parse(userStr);
+                
+                // Load user's resources for translation
+                await loadUserResources();
+            } else {
+                showStatus('Please log in to use translation features', 'error');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,70 @@
+# ========================================
+# TransLearn LMS Environment Variables
+# ========================================
+# 
+# Copy this file to .env and fill in your actual values
+# DO NOT commit .env file to version control
+#
+# Railway will use these variables automatically
+# ========================================
+
+# ========================================
+# DATABASE CONFIGURATION (Railway PostgreSQL)
+# ========================================
+# Get these from your Railway PostgreSQL service dashboard
+DATABASE_HOST=your_railway_postgresql_host_here
+DATABASE_NAME=your_railway_postgresql_database_name_here
+DATABASE_USER=your_railway_postgresql_username_here
+DATABASE_PASSWORD=your_railway_postgresql_password_here
+DATABASE_PORT=5432
+
+# ========================================
+# PAYMENT GATEWAY API KEYS
+# ========================================
+
+# Flutterwave (Recommended for Africa)
+# Get from: https://dashboard.flutterwave.com/settings/api-keys
+FLW_PUBLIC_KEY=FLWPUBK_TEST_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+FLW_SECRET_KEY=FLWSECK_TEST_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# Paystack (Alternative)
+# Get from: https://dashboard.paystack.com/settings/developer
+PAYSTACK_PUBLIC_KEY=pk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+PAYSTACK_SECRET_KEY=sk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# ========================================
+# AI TRANSLATION (Hugging Face)
+# ========================================
+# Get from: https://huggingface.co/settings/tokens
+HUGGINGFACE_API_KEY=hf_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# ========================================
+# APPLICATION CONFIGURATION
+# ========================================
+# Your Railway app URL
+BASE_URL=https://web-production-02449.up.railway.app
+
+# Secret key for JWT tokens (generate a random string)
+SECRET_KEY=your-super-secret-random-string-here-minimum-32-characters
+
+# Railway environment
+RAILWAY_ENVIRONMENT=production
+
+# ========================================
+# OPTIONAL: ADDITIONAL AI SERVICES
+# ========================================
+# For future features like audio generation, summarization
+OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+ELEVENLABS_API_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# ========================================
+# SETUP INSTRUCTIONS
+# ========================================
+#
+# 1. Copy this file to .env
+# 2. Fill in your actual values
+# 3. Deploy to Railway
+# 4. Set these variables in Railway dashboard
+# 5. Restart your service
+#
+# ========================================
