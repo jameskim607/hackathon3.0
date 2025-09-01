@@ -1,140 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up - TransLearn</title>
-    <link rel="stylesheet" href="styles.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sign Up - TransLearn</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
-<body class="auth-body">
-    <div class="auth-container">
-        <div class="auth-card">
-            <div class="auth-header">
-                <div class="logo">
-                    <i class="fas fa-graduation-cap"></i>
-                    <span>TransLearn</span>
-                </div>
-                <h1>Create Account</h1>
-                <p>Join our learning community</p>
-            </div>
-
-            <form id="signupForm" class="auth-form">
-                <div class="form-group">
-                    <label for="fullName">Full Name *</label>
-                    <div class="input-group">
-                        <i class="fas fa-user"></i>
-                        <input type="text" id="fullName" name="fullName" required placeholder="Enter your full name">
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="email">Email Address *</label>
-                    <div class="input-group">
-                        <i class="fas fa-envelope"></i>
-                        <input type="email" id="email" name="email" required placeholder="Enter your email">
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="phone">Phone Number</label>
-                    <div class="input-group">
-                        <i class="fas fa-phone"></i>
-                        <input type="tel" id="phone" name="phone" placeholder="+254 XXX XXX XXX">
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="password">Password *</label>
-                    <div class="input-group">
-                        <i class="fas fa-lock"></i>
-                        <input type="password" id="password" name="password" required placeholder="Create a password">
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="confirmPassword">Confirm Password *</label>
-                    <div class="input-group">
-                        <i class="fas fa-lock"></i>
-                        <input type="password" id="confirmPassword" name="confirmPassword" required placeholder="Confirm your password">
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="role">I am a *</label>
-                    <div class="input-group">
-                        <i class="fas fa-user-tag"></i>
-                        <select id="role" name="role" required>
-                            <option value="">Select your role</option>
-                            <option value="student">Student</option>
-                            <option value="teacher">Teacher</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="country">Country *</label>
-                    <div class="input-group">
-                        <i class="fas fa-globe"></i>
-                        <select id="country" name="country" required>
-                            <option value="">Select your country</option>
-                            <option value="kenya">Kenya</option>
-                            <option value="nigeria">Nigeria</option>
-                            <option value="ghana">Ghana</option>
-                            <option value="south-africa">South Africa</option>
-                            <option value="tanzania">Tanzania</option>
-                            <option value="uganda">Uganda</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="language">Preferred Language *</label>
-                    <div class="input-group">
-                        <i class="fas fa-language"></i>
-                        <select id="language" name="language" required>
-                            <option value="">Select language</option>
-                            <option value="english">English</option>
-                            <option value="swahili">Swahili</option>
-                            <option value="hausa">Hausa</option>
-                            <option value="yoruba">Yoruba</option>
-                            <option value="zulu">Zulu</option>
-                            <option value="amharic">Amharic</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-terms">
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="terms" name="terms" required>
-                        <span class="checkmark"></span>
-                        I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
-                    </label>
-                </div>
-
-                <button type="submit" class="btn btn-primary btn-full">
-                    <i class="fas fa-user-plus"></i> Create Account
-                </button>
-
-                <div class="auth-footer">
-                    <p>Already have an account? <a href="login.html">Sign in here</a></p>
-                </div>
-            </form>
-        </div>
-
-        <div class="back-home">
-            <a href="index.html">
-                <i class="fas fa-arrow-left"></i> Back to Home
-            </a>
-        </div>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <div class="logo"><i class="fas fa-graduation-cap"></i> TransLearn</div>
     </div>
+  </header>
 
-    <script src="script.js"></script>
-    <script>
-        document.getElementById('signupForm').addEventListener('submit', function(event) {
-            event.preventDefault();
-            handleSignup(event);
-        });
-    </script>
+  <main class="main">
+    <div class="container auth-card">
+      <h1>Create an account</h1>
+
+      <!-- global status message target -->
+      <div id="statusMessage" style="display:none;"></div>
+
+      <form id="signupForm" class="auth-form">
+        <div class="form-group">
+          <label for="name">Full name</label>
+          <input id="name" name="name" type="text" required placeholder="Your full name" />
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email address</label>
+          <input id="email" name="email" type="email" required placeholder="you@example.com" />
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password" required placeholder="Choose a password" />
+        </div>
+
+        <div class="form-group">
+          <label for="role">I'm a</label>
+          <select id="role" name="role" required>
+            <option value="student">Student</option>
+            <option value="teacher">Teacher</option>
+          </select>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Sign Up</button>
+        </div>
+      </form>
+
+      <p class="muted">Already registered? <a href="login.html">Sign in</a></p>
+    </div>
+  </main>
+
+  <script src="script.js"></script>
 </body>
 </html>

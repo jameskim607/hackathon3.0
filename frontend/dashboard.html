@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - TransLearn</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <meta name="theme-color" content="#4f46e5">
 </head>
 <body>
     <header>
@@ -58,26 +60,14 @@
                 <section class="recent-resources">
                     <h2>Recently Viewed</h2>
                     <div class="resources-grid" id="recentResources">
-                        <div class="resource-card">
-                            <div class="resource-icon">
-                                <i class="fas fa-file-pdf"></i>
-                            </div>
-                            <div class="resource-content">
-                                <h3>Mathematics Grade 7</h3>
-                                <p>Algebra basics and equations</p>
-                                <div class="resource-meta">
-                                    <span class="subject">Mathematics</span>
-                                    <span class="rating">⭐ 4.5</span>
-                                </div>
-                            </div>
-                        </div>
+                        <!-- Recent resources will load here -->
                     </div>
                 </section>
 
                 <section class="recommended-resources">
                     <h2>Recommended for You</h2>
                     <div class="resources-grid" id="recommendedResources">
-                        <!-- Recommended resources will be loaded here -->
+                        <!-- Recommended resources will load here -->
                     </div>
                 </section>
 
@@ -92,7 +82,7 @@
                             <i class="fas fa-upload"></i>
                             <span>Upload Content</span>
                         </a>
-                        <a href="#" class="action-card">
+                        <a href="#" class="action-card" onclick="downloadOffline()">
                             <i class="fas fa-download"></i>
                             <span>Download for Offline</span>
                         </a>
@@ -108,9 +98,14 @@
 
     <script src="script.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            loadDashboardData();
-        });
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/service-worker.js')
+                .then(() => console.log('Service Worker registered'))
+                .catch(err => console.error('SW registration failed:', err));
+        }
+
+        document.addEventListener('DOMContentLoaded', loadDashboardData);
 
         async function loadDashboardData() {
             try {
@@ -119,62 +114,74 @@
                 
                 // Load user stats
                 const stats = await fetchUserStats();
-                if (stats) {
-                    document.getElementById('resourcesCount').textContent = stats.resources_accessed || 0;
-                    document.getElementById('ratingCount').textContent = stats.ratings_given || 0;
-                    document.getElementById('languagesCount').textContent = stats.languages_used || 1;
-                }
-                
-                // Load recommended resources
+                document.getElementById('resourcesCount').textContent = stats.resources_accessed || 0;
+                document.getElementById('ratingCount').textContent = stats.ratings_given || 0;
+                document.getElementById('languagesCount').textContent = stats.languages_used || 1;
+
+                // Load recent & recommended resources
+                await loadRecentResources();
                 await loadRecommendedResources();
-                
             } catch (error) {
                 console.error('Error loading dashboard:', error);
             }
         }
 
         async function fetchUserStats() {
-            // Mock data - replace with actual API call
-            return {
-                resources_accessed: 12,
-                ratings_given: 5,
-                languages_used: 2
-            };
+            // Mock data - replace with API call
+            return { resources_accessed: 12, ratings_given: 5, languages_used: 2 };
         }
 
-        async function loadRecommendedResources() {
-            // Mock data - replace with actual API call
-            const resources = [
-                {
-                    title: "Science Grade 8",
-                    description: "Biology and chemistry fundamentals",
-                    subject: "Science",
-                    rating: 4.2
-                },
-                {
-                    title: "English Literature",
-                    description: "Poetry and prose analysis",
-                    subject: "English",
-                    rating: 4.7
-                }
+        async function loadRecentResources() {
+            const recent = [
+                { title: "Mathematics Grade 7", description: "Algebra basics", subject: "Math", rating: 4.5, type: "pdf" }
             ];
-
-            const container = document.getElementById('recommendedResources');
-            container.innerHTML = resources.map(resource => `
+            const container = document.getElementById('recentResources');
+            container.innerHTML = recent.map(r => `
                 <div class="resource-card">
-                    <div class="resource-icon">
-                        <i class="fas fa-file-alt"></i>
-                    </div>
+                    <div class="resource-icon"><i class="fas fa-file-${r.type}"></i></div>
                     <div class="resource-content">
-                        <h3>${resource.title}</h3>
-                        <p>${resource.description}</p>
+                        <h3>${r.title}</h3>
+                        <p>${r.description}</p>
                         <div class="resource-meta">
-                            <span class="subject">${resource.subject}</span>
-                            <span class="rating">⭐ ${resource.rating}</span>
+                            <span class="subject">${r.subject}</span>
+                            <span class="rating">⭐ ${r.rating}</span>
                         </div>
                     </div>
                 </div>
             `).join('');
+        }
+
+        async function loadRecommendedResources() {
+            const resources = [
+                { title: "Science Grade 8", description: "Biology & Chemistry", subject: "Science", rating: 4.2 },
+                { title: "English Literature", description: "Poetry and prose", subject: "English", rating: 4.7 }
+            ];
+            const container = document.getElementById('recommendedResources');
+            container.innerHTML = resources.map(r => `
+                <div class="resource-card">
+                    <div class="resource-icon"><i class="fas fa-file-alt"></i></div>
+                    <div class="resource-content">
+                        <h3>${r.title}</h3>
+                        <p>${r.description}</p>
+                        <div class="resource-meta">
+                            <span class="subject">${r.subject}</span>
+                            <span class="rating">⭐ ${r.rating}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.href = '/login.html';
+        }
+
+        function downloadOffline() {
+            if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+                navigator.serviceWorker.controller.postMessage({ action: 'downloadOffline' });
+                alert('Resources will be cached for offline use.');
+            }
         }
     </script>
 </body>

@@ -4,11 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TransLearn - Transformative Learning Across Africa</title>
+
+    <!-- Styles -->
     <link rel="stylesheet" href="styles.css">
+
+    <!-- Font Awesome Icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Manifest for PWA -->
     <link rel="manifest" href="manifest.json">
+
+    <!-- Favicon -->
+    <link rel="icon" href="icons/icon-192.png" type="image/png">
 </head>
 <body>
+    <!-- HEADER -->
     <header>
         <div class="container">
             <div class="logo">
@@ -24,27 +34,29 @@
         </div>
     </header>
 
+    <!-- MAIN -->
     <main class="main">
+        <!-- HERO SECTION -->
         <section class="hero">
             <div class="container">
                 <div class="hero-content">
                     <h1>Education Without Boundaries</h1>
-                    <p>Access quality educational resources in your native language, anytime, anywhere - even without internet</p>
+                    <p>Access quality educational resources in your native language, anytime, anywhere - even without internet.</p>
                     <div class="hero-buttons">
                         <a href="signup.html" class="btn btn-primary">Start Learning</a>
                         <a href="search.html" class="btn btn-secondary">Browse Resources</a>
                     </div>
                     <div class="hero-stats">
                         <div class="stat">
-                            <span class="stat-number">500+</span>
+                            <span class="stat-number" id="resource-count">...</span>
                             <span class="stat-label">Resources</span>
                         </div>
                         <div class="stat">
-                            <span class="stat-number">10+</span>
+                            <span class="stat-number" id="language-count">...</span>
                             <span class="stat-label">Languages</span>
                         </div>
                         <div class="stat">
-                            <span class="stat-number">1,000+</span>
+                            <span class="stat-number" id="student-count">...</span>
                             <span class="stat-label">Students</span>
                         </div>
                     </div>
@@ -55,6 +67,7 @@
             </div>
         </section>
 
+        <!-- FEATURES -->
         <section class="features">
             <div class="container">
                 <h2>Why Choose TransLearn?</h2>
@@ -62,27 +75,28 @@
                     <div class="feature-card">
                         <i class="fas fa-mobile-alt"></i>
                         <h3>USSD Access</h3>
-                        <p>Learn from any phone, even without internet connection</p>
+                        <p>Learn from any phone, even without internet connection.</p>
                     </div>
                     <div class="feature-card">
                         <i class="fas fa-language"></i>
                         <h3>Native Languages</h3>
-                        <p>Content available in Swahili, Hausa, Yoruba, Zulu and more</p>
+                        <p>Content available in Swahili, Hausa, Yoruba, Zulu and more.</p>
                     </div>
                     <div class="feature-card">
                         <i class="fas fa-robot"></i>
                         <h3>AI Powered</h3>
-                        <p>Smart translations, summaries, and text-to-speech</p>
+                        <p>Smart translations, summaries, and text-to-speech.</p>
                     </div>
                     <div class="feature-card">
                         <i class="fas fa-graduation-cap"></i>
                         <h3>Verified Teachers</h3>
-                        <p>Quality content from certified African educators</p>
+                        <p>Quality content from certified African educators.</p>
                     </div>
                 </div>
             </div>
         </section>
 
+        <!-- HOW IT WORKS -->
         <section class="how-it-works">
             <div class="container">
                 <h2>How It Works</h2>
@@ -90,22 +104,23 @@
                     <div class="step">
                         <div class="step-number">1</div>
                         <h3>Sign Up</h3>
-                        <p>Create your free account as student or teacher</p>
+                        <p>Create your free account as student or teacher.</p>
                     </div>
                     <div class="step">
                         <div class="step-number">2</div>
                         <h3>Access Content</h3>
-                        <p>Browse resources or use USSD for basic phones</p>
+                        <p>Browse resources or use USSD for basic phones.</p>
                     </div>
                     <div class="step">
                         <div class="step-number">3</div>
                         <h3>Learn & Grow</h3>
-                        <p>Study in your preferred language, anytime</p>
+                        <p>Study in your preferred language, anytime.</p>
                     </div>
                 </div>
             </div>
         </section>
 
+        <!-- USSD SECTION -->
         <section class="ussd-section">
             <div class="container">
                 <div class="ussd-content">
@@ -115,7 +130,7 @@
                         <div class="ussd-code">
                             <code>*384*456#</code>
                         </div>
-                        <p>Available on all networks across Africa</p>
+                        <p>Available on all networks across Africa.</p>
                     </div>
                     <div class="ussd-image">
                         <i class="fas fa-mobile"></i>
@@ -125,12 +140,13 @@
         </section>
     </main>
 
+    <!-- FOOTER -->
     <footer>
         <div class="container">
             <div class="footer-content">
                 <div class="footer-section">
                     <h3>TransLearn</h3>
-                    <p>Transforming education across Africa through technology and innovation</p>
+                    <p>Transforming education across Africa through technology and innovation.</p>
                 </div>
                 <div class="footer-section">
                     <h4>Quick Links</h4>
@@ -147,19 +163,30 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2024 TransLearn. Empowering African education.</p>
+                <p>&copy; 2025 TransLearn. Empowering African education.</p>
             </div>
         </div>
     </footer>
 
+    <!-- Scripts -->
     <script src="script.js"></script>
     <script>
         // Register service worker for PWA
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('service-worker.js')
-                .then(() => console.log('Service Worker Registered'))
-                .catch(err => console.log('Service Worker Registration Failed: ', err));
+                .then(() => console.log('✅ Service Worker Registered'))
+                .catch(err => console.error('❌ Service Worker Registration Failed:', err));
         }
+
+        // Fetch backend stats (resources, languages, students)
+        fetch('https://your-backend-url.com/api/stats')
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('resource-count').textContent = data.resources || '500+';
+                document.getElementById('language-count').textContent = data.languages || '10+';
+                document.getElementById('student-count').textContent = data.students || '1,000+';
+            })
+            .catch(err => console.error('Failed to load stats:', err));
     </script>
 </body>
 </html>

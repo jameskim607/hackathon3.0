@@ -1,241 +1,43 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Browse Resources - TransLearn</title>
-    <link rel="stylesheet" href="styles.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Search Resources - TransLearn</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-    <header>
-        <div class="container">
-            <div class="logo">
-                <i class="fas fa-graduation-cap"></i>
-                <span>TransLearn</span>
-            </div>
-            <nav>
-                <a href="index.html">Home</a>
-                <a href="search.html" class="active">Browse</a>
-                <a href="dashboard.html">Dashboard</a>
-                <a href="login.html">Login</a>
-            </nav>
-        </div>
-    </header>
+  <header class="site-header">
+    <div class="container">
+      <div class="logo"><i class="fas fa-graduation-cap"></i> TransLearn</div>
+      <nav class="nav">
+        <a href="index.html">Home</a>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="upload.html">Upload</a>
+        <a href="#" onclick="logout()">Logout</a>
+      </nav>
+    </div>
+  </header>
 
-    <main class="main">
-        <div class="container">
-            <div class="search-header">
-                <h1>Browse Learning Resources</h1>
-                <p>Discover educational materials from verified teachers across Africa</p>
-            </div>
+  <main class="main">
+    <div class="container">
+      <h1>Find Learning Resources</h1>
 
-            <div class="search-filters">
-                <div class="filter-group">
-                    <input type="text" id="searchInput" placeholder="Search resources..." class="search-input">
-                    <button class="btn btn-primary" onclick="searchResources()">
-                        <i class="fas fa-search"></i> Search
-                    </button>
-                </div>
+      <!-- global status message target -->
+      <div id="statusMessage" style="display:none;"></div>
 
-                <div class="filter-grid">
-                    <div class="filter-item">
-                        <label>Subject</label>
-                        <select id="subjectFilter">
-                            <option value="">All Subjects</option>
-                            <option value="mathematics">Mathematics</option>
-                            <option value="science">Science</option>
-                            <option value="english">English</option>
-                            <option value="history">History</option>
-                            <option value="geography">Geography</option>
-                        </select>
-                    </div>
+      <form id="searchForm" class="search-form">
+        <input id="searchInput" name="q" type="search" placeholder="Search by title, subject, tags..." required />
+        <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> Search</button>
+      </form>
 
-                    <div class="filter-item">
-                        <label>Grade Level</label>
-                        <select id="gradeFilter">
-                            <option value="">All Grades</option>
-                            <option value="primary">Primary</option>
-                            <option value="secondary">Secondary</option>
-                            <option value="college">College</option>
-                        </select>
-                    </div>
+      <section id="searchResults" class="results">
+        <!-- results injected here -->
+      </section>
+    </div>
+  </main>
 
-                    <div class="filter-item">
-                        <label>Language</label>
-                        <select id="languageFilter">
-                            <option value="">All Languages</option>
-                            <option value="english">English</option>
-                            <option value="swahili">Swahili</option>
-                            <option value="hausa">Hausa</option>
-                            <option value="yoruba">Yoruba</option>
-                        </select>
-                    </div>
-
-                    <div class="filter-item">
-                        <label>Price</label>
-                        <select id="priceFilter">
-                            <option value="">Any Price</option>
-                            <option value="free">Free</option>
-                            <option value="paid">Paid</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <div class="resources-container">
-                <div class="resources-header">
-                    <h2 id="resultsCount">Loading resources...</h2>
-                    <div class="sort-options">
-                        <label>Sort by:</label>
-                        <select id="sortBy">
-                            <option value="newest">Newest</option>
-                            <option value="popular">Most Popular</option>
-                            <option value="rating">Highest Rated</option>
-                            <option value="price">Price: Low to High</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="resources-grid" id="resourcesGrid">
-                    <!-- Resources will be loaded here -->
-                </div>
-
-                <div class="pagination" id="pagination">
-                    <!-- Pagination will be added here -->
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <script src="script.js"></script>
-    <script>
-        const API_BASE_URL = 'https://web-production-02449.up.railway.app';
-        let currentPage = 1;
-        const resourcesPerPage = 12;
-
-        document.addEventListener('DOMContentLoaded', function() {
-            loadResources();
-            setupEventListeners();
-        });
-
-        function setupEventListeners() {
-            // Add event listeners to all filters
-            ['subjectFilter', 'gradeFilter', 'languageFilter', 'priceFilter', 'sortBy'].forEach(id => {
-                document.getElementById(id).addEventListener('change', () => {
-                    currentPage = 1;
-                    loadResources();
-                });
-            });
-
-            document.getElementById('searchInput').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    searchResources();
-                }
-            });
-        }
-
-        async function loadResources() {
-            try {
-                const filters = getCurrentFilters();
-                const response = await fetch(`${API_BASE_URL}/resources?${buildQueryString(filters)}`);
-                
-                if (!response.ok) throw new Error('Failed to fetch resources');
-                
-                const data = await response.json();
-                displayResources(data.resources);
-                updatePagination(data.total_count || data.resources.length);
-                
-            } catch (error) {
-                console.error('Error loading resources:', error);
-                document.getElementById('resourcesGrid').innerHTML = `
-                    <div class="error-state">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <p>Failed to load resources. Please try again later.</p>
-                    </div>
-                `;
-            }
-        }
-
-        function getCurrentFilters() {
-            return {
-                subject: document.getElementById('subjectFilter').value,
-                grade_level: document.getElementById('gradeFilter').value,
-                language: document.getElementById('languageFilter').value,
-                price_range: document.getElementById('priceFilter').value,
-                sort: document.getElementById('sortBy').value,
-                page: currentPage,
-                limit: resourcesPerPage,
-                search: document.getElementById('searchInput').value
-            };
-        }
-
-        function buildQueryString(filters) {
-            const params = new URLSearchParams();
-            Object.entries(filters).forEach(([key, value]) => {
-                if (value) params.append(key, value);
-            });
-            return params.toString();
-        }
-
-        function displayResources(resources) {
-            const container = document.getElementById('resourcesGrid');
-            
-            if (!resources || resources.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-book-open"></i>
-                        <h3>No resources found</h3>
-                        <p>Try adjusting your filters or search terms</p>
-                    </div>
-                `;
-                return;
-            }
-
-            container.innerHTML = resources.map(resource => `
-                <div class="resource-card">
-                    <div class="resource-image">
-                        <i class="fas fa-${getResourceIcon(resource.file_type)}"></i>
-                    </div>
-                    <div class="resource-content">
-                        <h3>${resource.title}</h3>
-                        <p>${resource.description?.substring(0, 100)}...</p>
-                        <div class="resource-meta">
-                            <span class="subject">${resource.subject}</span>
-                            <span class="grade">${resource.grade_level}</span>
-                            <span class="language">${resource.language}</span>
-                        </div>
-                        <div class="resource-footer">
-                            <div class="rating">
-                                ⭐ ${resource.average_rating || '4.0'}
-                            </div>
-                            <div class="price">
-                                ${resource.price > 0 ? `KES ${resource.price}` : 'Free'}
-                            </div>
-                        </div>
-                        <button class="btn btn-primary btn-sm" onclick="viewResource(${resource.id})">
-                            View Details
-                        </button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function getResourceIcon(fileType) {
-            if (fileType?.includes('pdf')) return 'file-pdf';
-            if (fileType?.includes('word')) return 'file-word';
-            if (fileType?.includes('video')) return 'video';
-            return 'file-alt';
-        }
-
-        function searchResources() {
-            currentPage = 1;
-            loadResources();
-        }
-
-        function viewResource(resourceId) {
-            window.location.href = `resource-detail.html?id=${resourceId}`;
-        }
-    </script>
+  <script src="script.js"></script>
 </body>
 </html>

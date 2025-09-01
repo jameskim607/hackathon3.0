@@ -1,374 +1,410 @@
-// TransLearn Frontend JavaScript
-const API_BASE_URL = 'https://web-production-02449.up.railway.app';
-
 // =======================
-// Authentication Functions
+// script.js - TransLearn Frontend (complete)
 // =======================
 
-async function handleLogin(event) {
-    event.preventDefault();
-    
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value.trim();
+// Backend base URL - change if needed
+const API_BASE_URL = (window.API_BASE_URL || 'https://web-production-02449.up.railway.app').replace(/\/$/, '');
 
-    if (!email || !password) {
-        showMessage('Please fill in all fields', 'error');
-        return;
-    }
+// =======================
+// Global status message helper
+// =======================
+function showStatus(message, type = 'success') {
+  // type: 'success' | 'error' | 'loading'
+  let statusDiv = document.getElementById('statusMessage');
+  if (!statusDiv) {
+    statusDiv = document.createElement('div');
+    statusDiv.id = 'statusMessage';
+    document.body.appendChild(statusDiv);
+  }
 
-    try {
-        // For demo purposes - in real app, this would call your backend
-        const response = await fetch(`${API_BASE_URL}/users/login`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ email, password })
-        });
+  statusDiv.textContent = message;
+  statusDiv.className = `status ${type}`;
+  statusDiv.style.display = 'block';
 
-        if (!response.ok) {
-            throw new Error('Login failed');
-        }
-
-        const userData = await response.json();
-        
-        // Store user data
-        localStorage.setItem('currentUser', JSON.stringify(userData));
-        localStorage.setItem('isLoggedIn', 'true');
-        
-        showMessage('Login successful! Redirecting...', 'success');
-        
-        // Redirect based on user role
-        setTimeout(() => {
-            window.location.href = userData.role === 'teacher' ? 'dashboard.html' : 'index.html';
-        }, 1500);
-
-    } catch (error) {
-        console.error('Login error:', error);
-        showMessage('Invalid email or password', 'error');
-    }
-}
-
-async function handleSignup(event) {
-    event.preventDefault();
-    
-    const formData = new FormData(event.target);
-    const userData = {
-        full_name: formData.get('fullName'),
-        email: formData.get('email'),
-        password: formData.get('password'),
-        phone: formData.get('phone'),
-        role: formData.get('role'),
-        country: formData.get('country'),
-        language: formData.get('language')
-    };
-
-    if (userData.password !== formData.get('confirmPassword')) {
-        showMessage('Passwords do not match', 'error');
-        return;
-    }
-
-    try {
-        const response = await fetch(`${API_BASE_URL}/users/register`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(userData)
-        });
-
-        if (!response.ok) {
-            throw new Error('Registration failed');
-        }
-
-        const result = await response.json();
-        showMessage('Account created successfully! Please login.', 'success');
-        
-        setTimeout(() => {
-            window.location.href = 'login.html';
-        }, 2000);
-
-    } catch (error) {
-        console.error('Signup error:', error);
-        showMessage('Registration failed. Please try again.', 'error');
-    }
-}
-
-function logout() {
-    localStorage.removeItem('currentUser');
-    localStorage.removeItem('isLoggedIn');
-    window.location.href = 'index.html';
-}
-
-function checkAuth() {
-    const isLoggedIn = localStorage.getItem('isLoggedIn');
-    if (!isLoggedIn && !window.location.href.includes('login') && !window.location.href.includes('signup')) {
-        window.location.href = 'login.html';
-    }
+  if (type !== 'loading') {
+    setTimeout(() => {
+      statusDiv.style.display = 'none';
+    }, 4000);
+  }
 }
 
 // =======================
-// Resource Functions
+// File upload UI helpers
 // =======================
-
-async function handleResourceUpload(event) {
-    event.preventDefault();
-    
-    const formData = new FormData(event.target);
-    const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
-    
-    if (!user.id) {
-        showMessage('Please login to upload resources', 'error');
-        return;
-    }
-
-    const resourceData = {
-        title: formData.get('title'),
-        description: formData.get('description'),
-        subject: formData.get('subject'),
-        grade_level: formData.get('gradeLevel'),
-        language: formData.get('language'),
-        price: parseFloat(formData.get('price')) || 0,
-        tags: formData.get('tags').split(',').map(tag => tag.trim()),
-        teacher_id: user.id
-    };
-
-    try {
-        const response = await fetch(`${API_BASE_URL}/resources/upload`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(resourceData)
-        });
-
-        if (!response.ok) {
-            throw new Error('Upload failed');
-        }
-
-        const result = await response.json();
-        showMessage('Resource uploaded successfully!', 'success');
-        
-        // Reset form
-        event.target.reset();
-        removeFile();
-        
-        setTimeout(() => {
-            window.location.href = 'dashboard.html';
-        }, 2000);
-
-    } catch (error) {
-        console.error('Upload error:', error);
-        showMessage('Upload failed. Please try again.', 'error');
-    }
-}
-
-// =======================
-// File Upload Functions
-// =======================
-
 function initializeFileUpload() {
-    const fileUploadArea = document.getElementById('fileUploadArea');
-    const resourceFile = document.getElementById('resourceFile');
-    
-    if (!fileUploadArea || !resourceFile) return;
+  const fileUploadArea = document.getElementById('fileUploadArea');
+  const fileInput = document.getElementById('resourceFile');
+  const fileInfo = document.getElementById('fileInfo');
+  const fileNameSpan = document.getElementById('fileName');
+  const fileSizeSpan = document.getElementById('fileSize');
 
-    fileUploadArea.addEventListener('click', () => resourceFile.click());
-    
-    fileUploadArea.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        fileUploadArea.style.borderColor = 'var(--primary-color)';
-        fileUploadArea.style.backgroundColor = 'var(--bg-tertiary)';
-    });
+  if (!fileUploadArea || !fileInput) return;
 
-    fileUploadArea.addEventListener('dragleave', () => {
-        fileUploadArea.style.borderColor = 'var(--border-color)';
-        fileUploadArea.style.backgroundColor = 'transparent';
-    });
+  // click area opens file selector
+  fileUploadArea.addEventListener('click', () => fileInput.click());
 
-    fileUploadArea.addEventListener('drop', (e) => {
-        e.preventDefault();
-        fileUploadArea.style.borderColor = 'var(--border-color)';
-        fileUploadArea.style.backgroundColor = 'transparent';
-        
-        if (e.dataTransfer.files.length > 0) {
-            handleFileSelection(e.dataTransfer.files[0]);
-        }
-    });
-
-    resourceFile.addEventListener('change', (e) => {
-        if (e.target.files.length > 0) {
-            handleFileSelection(e.target.files[0]);
-        }
-    });
-}
-
-function handleFileSelection(file) {
-    const allowedTypes = ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'txt', 'jpg', 'jpeg', 'png', 'mp4', 'mp3'];
-    const fileExtension = file.name.split('.').pop().toLowerCase();
-    
-    if (!allowedTypes.includes(fileExtension)) {
-        showMessage('File type not supported. Please upload PDF, DOC, PPT, images, or videos.', 'error');
-        return;
+  // when file selected via file picker
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files.length > 0) {
+      const file = fileInput.files[0];
+      fileNameSpan.textContent = file.name;
+      fileSizeSpan.textContent = `(${(file.size / (1024*1024)).toFixed(2)} MB)`;
+      fileInfo.style.display = 'block';
+      fileUploadArea.style.display = 'none';
     }
+  });
 
-    if (file.size > 50 * 1024 * 1024) { // 50MB limit
-        showMessage('File too large. Maximum size is 50MB.', 'error');
-        return;
+  // drag over
+  fileUploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    fileUploadArea.classList.add('dragover');
+  });
+
+  fileUploadArea.addEventListener('dragleave', () => {
+    fileUploadArea.classList.remove('dragover');
+  });
+
+  // drop
+  fileUploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    fileUploadArea.classList.remove('dragover');
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      fileInput.files = e.dataTransfer.files;
+      const file = fileInput.files[0];
+      fileNameSpan.textContent = file.name;
+      fileSizeSpan.textContent = `(${(file.size / (1024*1024)).toFixed(2)} MB)`;
+      fileInfo.style.display = 'block';
+      fileUploadArea.style.display = 'none';
     }
-
-    const fileInfo = document.getElementById('fileInfo');
-    const fileName = document.getElementById('fileName');
-    const fileSize = document.getElementById('fileSize');
-    const fileUploadArea = document.getElementById('fileUploadArea');
-
-    if (fileInfo && fileName && fileSize && fileUploadArea) {
-        fileName.textContent = file.name;
-        fileSize.textContent = `(${(file.size / 1024 / 1024).toFixed(1)} MB)`;
-        fileInfo.style.display = 'block';
-        fileUploadArea.style.display = 'none';
-    }
+  });
 }
 
 function removeFile() {
-    const resourceFile = document.getElementById('resourceFile');
-    const fileInfo = document.getElementById('fileInfo');
-    const fileUploadArea = document.getElementById('fileUploadArea');
-    
-    if (resourceFile && fileInfo && fileUploadArea) {
-        resourceFile.value = '';
-        fileInfo.style.display = 'none';
-        fileUploadArea.style.display = 'block';
-    }
+  const fileInput = document.getElementById('resourceFile');
+  const fileInfo = document.getElementById('fileInfo');
+  const fileUploadArea = document.getElementById('fileUploadArea');
+  if (!fileInput) return;
+  fileInput.value = '';
+  if (fileInfo) fileInfo.style.display = 'none';
+  if (fileUploadArea) fileUploadArea.style.display = 'block';
 }
 
 // =======================
-// Utility Functions
+// Auth helpers
 // =======================
+function getCurrentUser() {
+  try {
+    return JSON.parse(localStorage.getItem('currentUser') || 'null') || null;
+  } catch (e) {
+    return null;
+  }
+}
 
-function showMessage(message, type = 'info') {
-    // Remove existing messages
-    const existingMessages = document.querySelectorAll('.message');
-    existingMessages.forEach(msg => msg.remove());
+function saveCurrentUser(userObj) {
+  localStorage.setItem('currentUser', JSON.stringify(userObj));
+}
 
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `message message-${type}`;
-    messageDiv.innerHTML = `
-        <div class="message-content">
-            <i class="fas ${getMessageIcon(type)}"></i>
-            <span>${message}</span>
-            <button class="message-close" onclick="this.parentElement.parentElement.remove()">
-                <i class="fas fa-times"></i>
-            </button>
+function clearCurrentUser() {
+  localStorage.removeItem('currentUser');
+}
+
+// =======================
+// Signup
+// =======================
+async function handleSignup(evt) {
+  evt.preventDefault();
+  const form = document.getElementById('signupForm');
+  if (!form) return;
+
+  const name = (form.querySelector('#name')?.value || '').trim();
+  const email = (form.querySelector('#email')?.value || '').trim();
+  const password = (form.querySelector('#password')?.value || '');
+  const role = (form.querySelector('#role')?.value || 'student');
+
+  if (!name || !email || !password) {
+    showStatus('Please fill all required fields.', 'error');
+    return;
+  }
+
+  const payload = {
+    full_name: name,
+    email,
+    password,
+    role,
+    phone: '',
+    country: 'Kenya',
+    language: 'english'
+  };
+
+  try {
+    showStatus('Creating account...', 'loading');
+    const res = await fetch(`${API_BASE_URL}/users/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const err = body.detail || body.message || 'Signup failed';
+      showStatus(err, 'error');
+      return;
+    }
+
+    showStatus('Account created. Please login.', 'success');
+    setTimeout(() => window.location.href = 'login.html', 1200);
+  } catch (err) {
+    console.error(err);
+    showStatus('Network error. Try again later.', 'error');
+  }
+}
+
+// =======================
+// Login
+// =======================
+async function handleLogin(evt) {
+  evt.preventDefault();
+  const form = document.getElementById('loginForm');
+  if (!form) return;
+
+  const email = (form.querySelector('#email')?.value || '').trim();
+  const password = (form.querySelector('#password')?.value || '');
+
+  if (!email || !password) {
+    showStatus('Please enter email and password.', 'error');
+    return;
+  }
+
+  try {
+    showStatus('Signing in...', 'loading');
+    const res = await fetch(`${API_BASE_URL}/users/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const err = body.detail || body.message || 'Login failed';
+      showStatus(err, 'error');
+      return;
+    }
+
+    // backend may return the user object directly
+    const user = body;
+    saveCurrentUser(user);
+    showStatus('Login successful! Redirecting...', 'success');
+    setTimeout(() => window.location.href = 'dashboard.html', 800);
+  } catch (err) {
+    console.error(err);
+    showStatus('Network error. Try again later.', 'error');
+  }
+}
+
+// =======================
+// Search
+// =======================
+async function handleSearch(evt) {
+  evt.preventDefault();
+  const qInput = document.getElementById('searchInput');
+  const resultsEl = document.getElementById('searchResults');
+  const query = (qInput?.value || '').trim();
+
+  if (!resultsEl) return;
+
+  if (!query) {
+    resultsEl.innerHTML = '<p>Please enter a search term.</p>';
+    return;
+  }
+
+  try {
+    resultsEl.innerHTML = '<p>Searching...</p>';
+    // Use resources endpoint - we send 'search' param even if backend may ignore it
+    const params = new URLSearchParams({ search: query, page: '1', limit: '20' });
+    const res = await fetch(`${API_BASE_URL}/resources?${params.toString()}`);
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      resultsEl.innerHTML = `<p class="error">${body.detail || 'Search failed'}</p>`;
+      return;
+    }
+
+    const resources = body.resources || body || [];
+    if (!resources.length) {
+      resultsEl.innerHTML = `<p>No resources found for "${query}".</p>`;
+      return;
+    }
+
+    resultsEl.innerHTML = resources.map(r => {
+      const priceStr = (r.price && r.price > 0) ? `KES ${r.price}` : 'Free';
+      const fileLink = r.file_url ? `<a class="btn" href="${r.file_url}" target="_blank" rel="noopener">Download</a>` : `<a class="btn" href="resource-detail.html?id=${r.id}">View</a>`;
+      return `
+        <div class="resource-card">
+          <h3>${escapeHtml(r.title || 'Untitled')}</h3>
+          <p>${escapeHtml((r.description || '').substring(0, 180))}${(r.description || '').length > 180 ? '...' : ''}</p>
+          <div class="meta">
+            <span>${escapeHtml(r.subject || '')}</span>
+            <span>${escapeHtml(r.grade_level || '')}</span>
+            <span>${escapeHtml(r.language || '')}</span>
+          </div>
+          <div class="footer">
+            <span class="price">${priceStr}</span>
+            ${fileLink}
+          </div>
         </div>
-    `;
-
-    document.body.appendChild(messageDiv);
-
-    // Auto-remove after 5 seconds
-    setTimeout(() => {
-        if (messageDiv.parentElement) {
-            messageDiv.remove();
-        }
-    }, 5000);
+      `;
+    }).join('');
+  } catch (err) {
+    console.error(err);
+    resultsEl.innerHTML = `<p class="error">Network error. Please try again.</p>`;
+  }
 }
 
-function getMessageIcon(type) {
-    switch (type) {
-        case 'success': return 'fa-check-circle';
-        case 'error': return 'fa-exclamation-circle';
-        case 'warning': return 'fa-exclamation-triangle';
-        default: return 'fa-info-circle';
-    }
-}
-
-function formatFileSize(bytes) {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-}
-
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
+// small helper to avoid XSS when injecting text
+function escapeHtml(s) {
+  return String(s || '')
+    .replaceAll('&','&amp;')
+    .replaceAll('<','&lt;')
+    .replaceAll('>','&gt;')
+    .replaceAll('"','&quot;')
+    .replaceAll("'",'&#39;');
 }
 
 // =======================
-// Payment Functions
+// Upload resource
 // =======================
+async function handleResourceUpload(evt) {
+  evt.preventDefault();
+  const form = document.getElementById('uploadForm');
+  if (!form) return;
 
-async function handlePayment(paymentData) {
-    try {
-        const response = await fetch(`${API_BASE_URL}/payments/initiate`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(paymentData)
-        });
+  const title = (form.querySelector('#title')?.value || '').trim();
+  const description = (form.querySelector('#description')?.value || '').trim();
+  const subject = (form.querySelector('#subject')?.value || form.querySelector('#category')?.value || '').trim();
+  const grade_level = (form.querySelector('#gradeLevel')?.value || '').trim();
+  const language = (form.querySelector('#language')?.value || '').trim();
+  const price = parseFloat(form.querySelector('#price')?.value || 0) || 0;
+  const tagsRaw = (form.querySelector('#tags')?.value || '').trim();
+  const tags = tagsRaw ? tagsRaw.split(',').map(t => t.trim()) : [];
+  const fileInput = document.getElementById('resourceFile');
+  const file = fileInput?.files?.[0];
 
-        if (!response.ok) {
-            throw new Error('Payment initiation failed');
-        }
+  if (!title || !description || !subject || !grade_level || !language) {
+    showStatus('Please fill all required fields.', 'error');
+    return;
+  }
 
-        const result = await response.json();
-        return result;
+  if (!file) {
+    showStatus('Please select a file to upload.', 'error');
+    return;
+  }
 
-    } catch (error) {
-        console.error('Payment error:', error);
-        throw error;
+  if (file.size > 50 * 1024 * 1024) {
+    showStatus('File too large. Max 50MB.', 'error');
+    return;
+  }
+
+  const currentUser = getCurrentUser();
+  if (!currentUser || !currentUser.id) {
+    showStatus('Please login as a teacher to upload.', 'error');
+    setTimeout(() => window.location.href = 'login.html', 800);
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('title', title);
+  formData.append('description', description);
+  formData.append('subject', subject);
+  formData.append('grade_level', grade_level);
+  formData.append('language', language);
+  formData.append('price', price);
+  formData.append('tags', JSON.stringify(tags));
+  formData.append('teacher_id', currentUser.id);
+  formData.append('file', file);
+
+  try {
+    showStatus('Uploading resource...', 'loading');
+    const res = await fetch(`${API_BASE_URL}/resources/upload`, {
+      method: 'POST',
+      body: formData
+      // Note: do NOT set Content-Type — browser will set multipart boundary
+    });
+
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const err = body.detail || body.message || 'Upload failed';
+      showStatus(err, 'error');
+      return;
     }
+
+    showStatus('Resource uploaded successfully!', 'success');
+    form.reset();
+    removeFile();
+    setTimeout(() => window.location.href = 'dashboard.html', 1000);
+  } catch (err) {
+    console.error(err);
+    showStatus('Network error. Try again later.', 'error');
+  }
 }
 
 // =======================
-// Initialize Application
+// Misc / Dashboard loader
 // =======================
+async function loadDashboard() {
+  const user = getCurrentUser();
+  if (!user) {
+    window.location.href = 'login.html';
+    return;
+  }
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Check authentication status
-    checkAuth();
-    
-    // Initialize file upload functionality
-    initializeFileUpload();
-    
-    // Check if user is logged in
-    const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
-    if (user.id) {
-        // Update UI for logged-in users
-        const loginLinks = document.querySelectorAll('a[href="login.html"], a[href="signup.html"]');
-        loginLinks.forEach(link => link.style.display = 'none');
-        
-        const userElements = document.querySelectorAll('.user-name');
-        userElements.forEach(el => {
-            el.textContent = user.full_name || 'User';
-        });
-    }
-    
-    // Register service worker for PWA
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('service-worker.js')
-            .then(registration => {
-                console.log('SW registered: ', registration);
-            })
-            .catch(registrationError => {
-                console.log('SW registration failed: ', registrationError);
-            });
-    }
+  const userNameEls = document.querySelectorAll('.user-name');
+  userNameEls.forEach(el => el.textContent = user.full_name || user.name || 'User');
+
+  // load recommended resources (best-effort)
+  try {
+    const res = await fetch(`${API_BASE_URL}/resources?limit=6`);
+    if (!res.ok) return;
+    const body = await res.json();
+    const recEl = document.getElementById('recommendedResources');
+    if (!recEl) return;
+    const resources = body.resources || body || [];
+    recEl.innerHTML = resources.map(r => `
+      <div class="resource-card">
+        <h3>${escapeHtml(r.title)}</h3>
+        <p>${escapeHtml((r.description||'').substring(0,140))}${(r.description||'').length>140 ? '...' : ''}</p>
+        <div class="meta"><span>${escapeHtml(r.subject)}</span><span>${escapeHtml(r.grade_level)}</span></div>
+        <a class="btn" href="resource-detail.html?id=${r.id}">View</a>
+      </div>
+    `).join('');
+  } catch (e) {
+    // ignore
+  }
+}
+
+// =======================
+// On load - wire up forms if present
+// =======================
+document.addEventListener('DOMContentLoaded', () => {
+  // initialize file area if present
+  initializeFileUpload();
+
+  // login form
+  const loginForm = document.getElementById('loginForm');
+  if (loginForm) loginForm.addEventListener('submit', handleLogin);
+
+  // signup form
+  const signupForm = document.getElementById('signupForm');
+  if (signupForm) signupForm.addEventListener('submit', handleSignup);
+
+  // search form
+  const searchForm = document.getElementById('searchForm') || document.getElementById('searchFormHeader');
+  if (searchForm) searchForm.addEventListener('submit', handleSearch);
+
+  // upload form
+  const uploadForm = document.getElementById('uploadForm');
+  if (uploadForm) uploadForm.addEventListener('submit', handleResourceUpload);
+
+  // dashboard loader
+  if (document.getElementById('recommendedResources') || document.getElementById('dashboardResources')) {
+    loadDashboard();
+  }
 });
-
-// Global functions
-window.handleLogin = handleLogin;
-window.handleSignup = handleSignup;
-window.handleResourceUpload = handleResourceUpload;
-window.logout = logout;
-window.removeFile = removeFile;
-window.showMessage = showMessage;
