@@ -179,6 +179,11 @@ function getCurrentUser() {
   return user ? JSON.parse(user) : null;
 }
 
+function logout() {
+  localStorage.removeItem('currentUser');
+  window.location.href = 'index.html';
+}
+
 // =======================
 // Main Functions with Fallback
 // =======================
@@ -212,7 +217,192 @@ async function handleLogin(evt) {
   }
 }
 
-// Similar handleSignup, handleSearch functions with fallback...
+async function handleSignup(evt) {
+  evt.preventDefault();
+  
+  const isHealthy = await checkBackendHealth();
+  if (!isHealthy) {
+    showStatus('Backend is having issues. Using demo mode.', 'error');
+    enableDemoMode();
+    return handleSignup(evt); // Retry with demo mode
+  }
+
+  try {
+    showStatus('Creating account...', 'loading');
+    const formData = new FormData(evt.target);
+    const payload = Object.fromEntries(formData);
+    
+    const response = await safeFetch(`${API_BASE_URL}/users/signup`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    localStorage.setItem('currentUser', JSON.stringify(response));
+    showStatus('Account created successfully!', 'success');
+    setTimeout(() => window.location.href = 'dashboard.html', 1000);
+    
+  } catch (error) {
+    showStatus(`Signup failed: ${error.message}`, 'error');
+  }
+}
+
+async function handleSearch(evt) {
+  evt.preventDefault();
+  
+  const isHealthy = await checkBackendHealth();
+  if (!isHealthy) {
+    showStatus('Backend is having issues. Using demo mode.', 'error');
+    enableDemoMode();
+    return handleSearch(evt); // Retry with demo mode
+  }
+
+  try {
+    showStatus('Searching...', 'loading');
+    const formData = new FormData(evt.target);
+    const query = formData.get('query');
+    const subject = formData.get('subject');
+    const grade = formData.get('grade');
+    
+    const params = new URLSearchParams();
+    if (query) params.append('query', query);
+    if (subject) params.append('subject', subject);
+    if (grade) params.append('grade', grade);
+    
+    const response = await safeFetch(`${API_BASE_URL}/resources/search?${params}`);
+    
+    // Display search results
+    displaySearchResults(response);
+    showStatus('Search completed!', 'success');
+    
+  } catch (error) {
+    showStatus(`Search failed: ${error.message}`, 'error');
+  }
+}
+
+function displaySearchResults(results) {
+  const resultsContainer = document.getElementById('searchResults');
+  if (!resultsContainer) return;
+  
+  if (!results || results.length === 0) {
+    resultsContainer.innerHTML = '<p>No resources found matching your criteria.</p>';
+    return;
+  }
+  
+  const resultsHtml = results.map(resource => `
+    <div class="resource-card">
+      <h3>${resource.title}</h3>
+      <p>${resource.description}</p>
+      <div class="meta">
+        <span>${resource.subject}</span>
+        <span>${resource.grade_level}</span>
+      </div>
+      <div class="footer">
+        <span class="price">${resource.price === 0 ? 'Free' : `$${resource.price}`}</span>
+        <a class="btn" href="#" onclick="viewResource(${resource.id})">View</a>
+      </div>
+    </div>
+  `).join('');
+  
+  resultsContainer.innerHTML = resultsHtml;
+}
+
+async function handleUpload(evt) {
+  evt.preventDefault();
+  
+  const isHealthy = await checkBackendHealth();
+  if (!isHealthy) {
+    showStatus('Backend is having issues. Please try again later.', 'error');
+    return;
+  }
+
+  try {
+    showStatus('Uploading resource...', 'loading');
+    const formData = new FormData(evt.target);
+    
+    const response = await safeFetch(`${API_BASE_URL}/resources/upload`, {
+      method: 'POST',
+      body: formData
+    });
+
+    showStatus('Resource uploaded successfully!', 'success');
+    evt.target.reset();
+    
+  } catch (error) {
+    showStatus(`Upload failed: ${error.message}`, 'error');
+  }
+}
+
+function viewResource(resourceId) {
+  // Navigate to resource detail page or show modal
+  showStatus('Opening resource...', 'loading');
+  // Implementation depends on your UI design
+  setTimeout(() => {
+    showStatus('Resource opened!', 'success');
+  }, 1000);
+}
+
+// =======================
+// Dashboard Functions
+// =======================
+async function loadDashboardData() {
+  const isHealthy = await checkBackendHealth();
+  if (!isHealthy) {
+    showStatus('Backend is having issues. Using demo mode.', 'error');
+    enableDemoMode();
+    return;
+  }
+
+  try {
+    const user = getCurrentUser();
+    if (!user) {
+      window.location.href = 'login.html';
+      return;
+    }
+
+    // Load user's resources, stats, etc.
+    const response = await safeFetch(`${API_BASE_URL}/users/${user.id}/dashboard`);
+    
+    // Update dashboard with real data
+    updateDashboard(response);
+    
+  } catch (error) {
+    showStatus(`Failed to load dashboard: ${error.message}`, 'error');
+  }
+}
+
+function updateDashboard(data) {
+  // Update dashboard elements with real data
+  if (data.resource_count && document.getElementById('resource-count')) {
+    document.getElementById('resource-count').textContent = data.resource_count;
+  }
+  if (data.language_count && document.getElementById('language-count')) {
+    document.getElementById('language-count').textContent = data.language_count;
+  }
+  if (data.student_count && document.getElementById('student-count')) {
+    document.getElementById('student-count').textContent = data.student_count;
+  }
+  
+  // Update recommended resources
+  if (data.recommended_resources && document.getElementById('recommendedResources')) {
+    const resourcesHtml = data.recommended_resources.map(r => `
+      <div class="resource-card">
+        <h3>${r.title}</h3>
+        <p>${r.description}</p>
+        <div class="meta">
+          <span>${r.subject}</span>
+          <span>${r.grade_level}</span>
+        </div>
+        <div class="footer">
+          <span class="price">${r.price === 0 ? 'Free' : `$${r.price}`}</span>
+          <a class="btn" href="#" onclick="viewResource(${r.id})">View</a>
+        </div>
+      </div>
+    `).join('');
+    
+    document.getElementById('recommendedResources').innerHTML = resourcesHtml;
+  }
+}
 
 // =======================
 // Initialize
@@ -230,10 +420,28 @@ document.addEventListener('DOMContentLoaded', async () => {
   const loginForm = document.getElementById('loginForm');
   if (loginForm) loginForm.addEventListener('submit', handleLogin);
 
-  // Load data
+  const signupForm = document.getElementById('signupForm');
+  if (signupForm) signupForm.addEventListener('submit', handleSignup);
+
+  const searchForm = document.getElementById('searchForm');
+  if (searchForm) searchForm.addEventListener('submit', handleSearch);
+
+  const uploadForm = document.getElementById('uploadForm');
+  if (uploadForm) uploadForm.addEventListener('submit', handleUpload);
+
+  // Load dashboard data if on dashboard page
+  if (window.location.pathname.includes('dashboard.html')) {
+    loadDashboardData();
+  }
+
+  // Load initial data
   if (document.getElementById('resource-count')) {
     document.getElementById('resource-count').textContent = '500+';
     document.getElementById('language-count').textContent = '10+';
     document.getElementById('student-count').textContent = '1000+';
   }
+
+  // Add logout functionality
+  const logoutBtn = document.getElementById('logoutBtn');
+  if (logoutBtn) logoutBtn.addEventListener('click', logout);
 });
