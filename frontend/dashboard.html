@@ -4,15 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard - TransLearn</title>
-  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="styles.css">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-  <link rel="manifest" href="manifest.json">
 </head>
 <body>
-  <header class="site-header">
+  <header>
     <div class="container">
-      <div class="logo"><i class="fas fa-graduation-cap"></i> TransLearn</div>
-      <nav class="nav">
+      <div class="logo">
+        <i class="fas fa-graduation-cap"></i>
+        <span>TransLearn</span>
+      </div>
+      <nav>
         <a href="index.html">Home</a>
         <a href="dashboard.html" class="active">Dashboard</a>
         <a href="upload.html">Upload</a>
@@ -24,10 +26,64 @@
   <main class="main">
     <div class="container">
       <h1>Welcome, <span class="user-name">User</span></h1>
-      <div id="statusMessage" style="display:none;"></div>
+      <div id="statusMessage" class="status" style="display:none;"></div>
 
-      <section id="recommendedResources" class="resources-grid">
-        <!-- Recommended resources will be loaded here by script.js -->
+      <section class="resources-section">
+        <h2>Recommended Resources</h2>
+        <div id="recommendedResources" class="resources-grid">
+          <div class="resource-card">
+            <h3>Mathematics Basics</h3>
+            <p>Fundamental concepts of algebra and geometry for beginners.</p>
+            <div class="meta">
+              <span>Mathematics</span>
+              <span>English</span>
+            </div>
+            <div class="footer">
+              <span class="price">Free</span>
+              <a href="#" class="btn">View</a>
+            </div>
+          </div>
+          
+          <div class="resource-card">
+            <h3>Science Experiments</h3>
+            <p>Fun and educational science experiments for primary students.</p>
+            <div class="meta">
+              <span>Science</span>
+              <span>Swahili</span>
+            </div>
+            <div class="footer">
+              <span class="price">Free</span>
+              <a href="#" class="btn">View</a>
+            </div>
+          </div>
+          
+          <div class="resource-card">
+            <h3>English Grammar</h3>
+            <p>Complete guide to English grammar rules and usage.</p>
+            <div class="meta">
+              <span>English</span>
+              <span>All levels</span>
+            </div>
+            <div class="footer">
+              <span class="price">KES 200</span>
+              <a href="#" class="btn">View</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="quick-actions">
+        <h2>Quick Actions</h2>
+        <div class="action-buttons">
+          <a href="search.html" class="btn btn-primary">
+            <i class="fas fa-search"></i>
+            Browse Resources
+          </a>
+          <a href="upload.html" class="btn btn-secondary">
+            <i class="fas fa-upload"></i>
+            Upload Resource
+          </a>
+        </div>
       </section>
     </div>
   </main>

@@ -4,15 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Search Resources - TransLearn</title>
-  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="styles.css">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-  <link rel="manifest" href="manifest.json">
 </head>
 <body>
-  <header class="site-header">
+  <header>
     <div class="container">
-      <div class="logo"><i class="fas fa-graduation-cap"></i> TransLearn</div>
-      <nav class="nav">
+      <div class="logo">
+        <i class="fas fa-graduation-cap"></i>
+        <span>TransLearn</span>
+      </div>
+      <nav>
         <a href="index.html">Home</a>
         <a href="dashboard.html">Dashboard</a>
         <a href="upload.html">Upload</a>
@@ -24,11 +26,87 @@
   <main class="main">
     <div class="container">
       <h1>Search Resources</h1>
-      <form id="searchForm">
-        <input type="text" id="searchInput" placeholder="Enter keywords..." required>
-        <button type="submit" class="btn btn-primary">Search</button>
+      
+      <form id="searchForm" class="search-form">
+        <div class="search-box">
+          <input type="text" id="searchInput" placeholder="Enter keywords, subjects, or topics..." required>
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-search"></i>
+            Search
+          </button>
+        </div>
+        
+        <div class="filters">
+          <select id="subjectFilter">
+            <option value="">All Subjects</option>
+            <option value="mathematics">Mathematics</option>
+            <option value="science">Science</option>
+            <option value="english">English</option>
+            <option value="history">History</option>
+            <option value="geography">Geography</option>
+          </select>
+          
+          <select id="languageFilter">
+            <option value="">All Languages</option>
+            <option value="english">English</option>
+            <option value="swahili">Swahili</option>
+            <option value="hausa">Hausa</option>
+            <option value="yoruba">Yoruba</option>
+            <option value="zulu">Zulu</option>
+          </select>
+          
+          <select id="gradeFilter">
+            <option value="">All Levels</option>
+            <option value="primary">Primary</option>
+            <option value="secondary">Secondary</option>
+            <option value="college">College</option>
+          </select>
+        </div>
       </form>
-      <div id="searchResults" class="resources-grid"></div>
+
+      <div id="searchResults" class="resources-grid">
+        <div class="resource-card">
+          <h3>Mathematics Basics</h3>
+          <p>Fundamental concepts of algebra and geometry for beginners.</p>
+          <div class="meta">
+            <span><i class="fas fa-book"></i> Mathematics</span>
+            <span><i class="fas fa-language"></i> English</span>
+            <span><i class="fas fa-graduation-cap"></i> Primary</span>
+          </div>
+          <div class="footer">
+            <span class="price">Free</span>
+            <a href="#" class="btn">View Details</a>
+          </div>
+        </div>
+        
+        <div class="resource-card">
+          <h3>Science Experiments</h3>
+          <p>Fun and educational science experiments for primary students.</p>
+          <div class="meta">
+            <span><i class="fas fa-book"></i> Science</span>
+            <span><i class="fas fa-language"></i> Swahili</span>
+            <span><i class="fas fa-graduation-cap"></i> Primary</span>
+          </div>
+          <div class="footer">
+            <span class="price">Free</span>
+            <a href="#" class="btn">View Details</a>
+          </div>
+        </div>
+        
+        <div class="resource-card">
+          <h3>Advanced Calculus</h3>
+          <p>Comprehensive guide to calculus for college students.</p>
+          <div class="meta">
+            <span><i class="fas fa-book"></i> Mathematics</span>
+            <span><i class="fas fa-language"></i> English</span>
+            <span><i class="fas fa-graduation-cap"></i> College</span>
+          </div>
+          <div class="footer">
+            <span class="price">KES 500</span>
+            <a href="#" class="btn">View Details</a>
+          </div>
+        </div>
+      </div>
     </div>
   </main>
 

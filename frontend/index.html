@@ -6,13 +6,10 @@
     <title>TransLearn - Transformative Learning Across Africa</title>
 
     <!-- Styles -->
-    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="styles.css">
 
     <!-- Font Awesome Icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-
-    <!-- Manifest for PWA -->
-    <link rel="manifest" href="manifest.json">
 
     <!-- Favicon -->
     <link rel="icon" href="icons/icon-192.png" type="image/png">
@@ -48,15 +45,15 @@
                     </div>
                     <div class="hero-stats">
                         <div class="stat">
-                            <span class="stat-number" id="resource-count">...</span>
+                            <span class="stat-number" id="resource-count">500+</span>
                             <span class="stat-label">Resources</span>
                         </div>
                         <div class="stat">
-                            <span class="stat-number" id="language-count">...</span>
+                            <span class="stat-number" id="language-count">10+</span>
                             <span class="stat-label">Languages</span>
                         </div>
                         <div class="stat">
-                            <span class="stat-number" id="student-count">...</span>
+                            <span class="stat-number" id="student-count">1,000+</span>
                             <span class="stat-label">Students</span>
                         </div>
                     </div>
@@ -170,23 +167,5 @@
 
     <!-- Scripts -->
     <script src="script.js"></script>
-    <script>
-        // Register service worker for PWA
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('service-worker.js')
-                .then(() => console.log('✅ Service Worker Registered'))
-                .catch(err => console.error('❌ Service Worker Registration Failed:', err));
-        }
-
-        // Fetch backend stats (resources, languages, students)
-        fetch(`${API_BASE_URL}/api/stats`)
-            .then(res => res.json())
-            .then(data => {
-                document.getElementById('resource-count').textContent = data.resources || '500+';
-                document.getElementById('language-count').textContent = data.languages || '10+';
-                document.getElementById('student-count').textContent = data.students || '1,000+';
-            })
-            .catch(err => console.error('Failed to load stats:', err));
-    </script>
 </body>
 </html>

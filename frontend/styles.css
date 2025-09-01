@@ -1,347 +1,609 @@
 /* ===============================
-   TransLearn Styles
-   Clean, modern, responsive
+   RESET & BASE STYLES
    =============================== */
-
-/* Reset and base styles */
-/* TEST: If you see red background, CSS is working */
-body {
-  background-color: red !important;
-}
-* {
-    box-sizing: border-box;
+   * {
     margin: 0;
     padding: 0;
+    box-sizing: border-box;
   }
   
-  html, body {
+  body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     line-height: 1.6;
-    background-color: #f4f4f9;
     color: #333;
-    min-height: 100%;
+    background-color: #f8fafc;
   }
   
-  a {
-    color: #4f46e5;
-    text-decoration: none;
-    transition: color 0.2s;
-  }
-  
-  a:hover {
-    color: #3730a3;
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
   }
   
   /* ===============================
-     Header
+     HEADER
      =============================== */
-  .site-header {
-    background-color: #4f46e5;
-    color: #fff;
+  header {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    color: white;
     padding: 1rem 0;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
   }
   
-  .site-header .container {
+  header .container {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    max-width: 1100px;
-    margin: auto;
-    padding: 0 1rem;
   }
   
-  .site-header .logo {
-    font-size: 1.6rem;
-    font-weight: bold;
+  .logo {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 10px;
+    font-size: 1.8rem;
+    font-weight: bold;
   }
   
-  .site-header .nav a {
-    margin-left: 1.5rem;
+  .logo i {
+    font-size: 2rem;
+  }
+  
+  nav {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+  }
+  
+  nav a {
+    color: white;
+    text-decoration: none;
     font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    transition: all 0.3s ease;
   }
   
-  .site-header .nav a.active {
-    border-bottom: 2px solid #fff;
+  nav a:hover {
+    background: rgba(255,255,255,0.1);
+  }
+  
+  nav a.active {
+    background: rgba(255,255,255,0.2);
   }
   
   /* ===============================
-     Main container
+     BUTTONS
      =============================== */
-  .main .container {
-    max-width: 900px;
-    margin: 2rem auto;
-    padding: 0 1rem;
+  .btn {
+    display: inline-block;
+    padding: 12px 24px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    text-align: center;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    cursor: pointer;
+  }
+  
+  .btn-primary {
+    background: #4f46e5;
+    color: white;
+  }
+  
+  .btn-primary:hover {
+    background: #3730a3;
+    transform: translateY(-2px);
+  }
+  
+  .btn-secondary {
+    background: transparent;
+    color: #4f46e5;
+    border-color: #4f46e5;
+  }
+  
+  .btn-secondary:hover {
+    background: #4f46e5;
+    color: white;
+  }
+  
+  .btn-outline {
+    background: transparent;
+    color: white;
+    border-color: white;
+  }
+  
+  .btn-outline:hover {
+    background: white;
+    color: #4f46e5;
   }
   
   /* ===============================
-     Forms
+     HERO SECTION
      =============================== */
-  .auth-card, .upload-form {
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    padding: 2rem;
-    margin-bottom: 2rem;
+  .hero {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    color: white;
+    padding: 4rem 0;
+    margin-bottom: 3rem;
   }
   
-  .auth-card h1, .upload-form h1 {
+  .hero .container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 3rem;
+  }
+  
+  .hero-content h1 {
+    font-size: 3rem;
     margin-bottom: 1.5rem;
-    color: #111827;
+    line-height: 1.2;
+  }
+  
+  .hero-content p {
+    font-size: 1.3rem;
+    margin-bottom: 2rem;
+    opacity: 0.9;
+    max-width: 600px;
+  }
+  
+  .hero-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 3rem;
+  }
+  
+  .hero-stats {
+    display: flex;
+    gap: 3rem;
+  }
+  
+  .stat {
     text-align: center;
   }
   
-  .form-group {
+  .stat-number {
+    display: block;
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+  }
+  
+  .stat-label {
+    font-size: 1rem;
+    opacity: 0.8;
+  }
+  
+  .hero-image i {
+    font-size: 10rem;
+    opacity: 0.7;
+  }
+  
+  /* ===============================
+     FEATURES SECTION
+     =============================== */
+  .features {
+    padding: 4rem 0;
+    background: white;
+  }
+  
+  .features h2 {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 3rem;
+    color: #1f2937;
+  }
+  
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+  }
+  
+  .feature-card {
+    background: #f8fafc;
+    padding: 2.5rem 2rem;
+    border-radius: 16px;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    transition: transform 0.3s ease;
+  }
+  
+  .feature-card:hover {
+    transform: translateY(-5px);
+  }
+  
+  .feature-card i {
+    font-size: 3.5rem;
+    color: #4f46e5;
+    margin-bottom: 1.5rem;
+  }
+  
+  .feature-card h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: #1f2937;
+  }
+  
+  .feature-card p {
+    color: #6b7280;
+    line-height: 1.6;
+  }
+  
+  /* ===============================
+     HOW IT WORKS SECTION
+     =============================== */
+  .how-it-works {
+    padding: 4rem 0;
+    background: #f1f5f9;
+  }
+  
+  .how-it-works h2 {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 3rem;
+    color: #1f2937;
+  }
+  
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+  }
+  
+  .step {
+    background: white;
+    padding: 2.5rem;
+    border-radius: 16px;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  }
+  
+  .step-number {
+    width: 60px;
+    height: 60px;
+    background: #4f46e5;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin: 0 auto 1.5rem;
+  }
+  
+  .step h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: #1f2937;
+  }
+  
+  .step p {
+    color: #6b7280;
+    line-height: 1.6;
+  }
+  
+  /* ===============================
+     USSD SECTION
+     =============================== */
+  .ussd-section {
+    padding: 4rem 0;
+    background: white;
+  }
+  
+  .ussd-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 3rem;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    padding: 3rem;
+    border-radius: 20px;
+    color: white;
+  }
+  
+  .ussd-info h2 {
+    font-size: 2.2rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .ussd-info p {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+    opacity: 0.9;
+  }
+  
+  .ussd-code {
+    background: rgba(255,255,255,0.1);
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+  }
+  
+  .ussd-code code {
+    font-size: 1.8rem;
+    font-weight: bold;
+    font-family: monospace;
+  }
+  
+  .ussd-image i {
+    font-size: 8rem;
+    opacity: 0.8;
+  }
+  
+  /* ===============================
+     FOOTER
+     =============================== */
+  footer {
+    background: #1f2937;
+    color: white;
+    padding: 3rem 0 1rem;
+    margin-top: 4rem;
+  }
+  
+  .footer-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    margin-bottom: 2rem;
+  }
+  
+  .footer-section h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: #4f46e5;
+  }
+  
+  .footer-section h4 {
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    color: #e5e7eb;
+  }
+  
+  .footer-section p {
+    line-height: 1.6;
+    color: #9ca3af;
     margin-bottom: 1rem;
   }
   
-  .form-group label {
+  .footer-section a {
     display: block;
+    color: #d1d5db;
+    text-decoration: none;
+    margin-bottom: 0.5rem;
+    transition: color 0.3s ease;
+  }
+  
+  .footer-section a:hover {
+    color: #4f46e5;
+  }
+  
+  .footer-bottom {
+    text-align: center;
+    padding-top: 2rem;
+    border-top: 1px solid #374151;
+    color: #9ca3af;
+  }
+  
+  /* ===============================
+     AUTH PAGES (Login/Signup)
+     =============================== */
+  .auth-card {
+    max-width: 500px;
+    margin: 2rem auto;
+    background: white;
+    padding: 3rem;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+  }
+  
+  .auth-card h1 {
+    text-align: center;
+    font-size: 2.2rem;
+    margin-bottom: 2rem;
+    color: #1f2937;
+  }
+  
+  .auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  
+  .form-group {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .form-group label {
     font-weight: 600;
     margin-bottom: 0.5rem;
+    color: #374151;
   }
   
   .form-group input,
   .form-group select,
   .form-group textarea {
-    width: 100%;
-    padding: 0.65rem 0.75rem;
+    padding: 1rem;
+    border: 2px solid #e5e7eb;
     border-radius: 8px;
-    border: 1px solid #d1d5db;
     font-size: 1rem;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition: border-color 0.3s ease;
   }
   
   .form-group input:focus,
   .form-group select:focus,
   .form-group textarea:focus {
-    border-color: #4f46e5;
     outline: none;
-    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+    border-color: #4f46e5;
   }
   
   .form-actions {
     display: flex;
-    justify-content: flex-end;
-    gap: 1rem;
-    margin-top: 1.5rem;
-  }
-  
-  button.btn {
-    padding: 0.65rem 1.25rem;
-    border-radius: 8px;
-    border: none;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.3s;
-  }
-  
-  button.btn-primary {
-    background-color: #4f46e5;
-    color: #fff;
-  }
-  
-  button.btn-primary:hover {
-    background-color: #3730a3;
-  }
-  
-  button.btn-secondary {
-    background-color: #e5e7eb;
-    color: #111827;
-  }
-  
-  button.btn-secondary:hover {
-    background-color: #d1d5db;
+    justify-content: center;
+    margin-top: 1rem;
   }
   
   /* ===============================
-     Status Messages
+     DASHBOARD & UPLOAD
      =============================== */
-  .status {
-    padding: 0.75rem 1rem;
-    border-radius: 8px;
-    margin-bottom: 1rem;
+  .main .container h1 {
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+    color: #1f2937;
     text-align: center;
-    font-weight: 500;
   }
   
-  .status.success {
-    background-color: #d1fae5;
-    color: #065f46;
-  }
-  
-  .status.error {
-    background-color: #fee2e2;
-    color: #991b1b;
-  }
-  
-  .status.loading {
-    background-color: #fef3c7;
-    color: #78350f;
-  }
-  
-  /* ===============================
-     Upload / File input
-     =============================== */
-  .file-upload-area {
-    border: 2px dashed #d1d5db;
-    border-radius: 12px;
-    padding: 2rem;
-    text-align: center;
-    cursor: pointer;
-    transition: border-color 0.3s, background-color 0.2s;
-    margin-bottom: 1rem;
-  }
-  
-  .file-upload-area.dragover {
-    border-color: #4f46e5;
-    background-color: #f3f4fd;
-  }
-  
-  .file-upload-area i {
-    font-size: 2rem;
-    margin-bottom: 0.5rem;
-  }
-  
-  .file-upload-area p {
-    margin-bottom: 0.25rem;
-    font-weight: 500;
-  }
-  
-  .file-types {
-    font-size: 0.85rem;
-    color: #6b7280;
-  }
-  
-  .file-info {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background-color: #f9fafb;
-    border-radius: 8px;
-    padding: 0.5rem 1rem;
-    border: 1px solid #d1d5db;
-  }
-  
-  .file-info i {
-    font-size: 1.5rem;
-    margin-right: 0.5rem;
-  }
-  
-  .btn-remove {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: #ef4444;
-  }
-  
-  /* ===============================
-     Cards / resources
-     =============================== */
   .resources-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 1.5rem;
     margin-top: 2rem;
   }
   
   .resource-card {
-    background: #fff;
+    background: white;
+    padding: 1.5rem;
     border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    padding: 1rem;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    transition: transform 0.3s ease;
   }
   
   .resource-card:hover {
     transform: translateY(-3px);
-    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
   }
   
   .resource-card h3 {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     margin-bottom: 0.5rem;
-    color: #111827;
+    color: #1f2937;
   }
   
   .resource-card p {
-    font-size: 0.95rem;
-    color: #4b5563;
-    margin-bottom: 0.75rem;
-  }
-  
-  .resource-card .meta {
-    display: flex;
-    gap: 0.5rem;
-    font-size: 0.8rem;
     color: #6b7280;
-    margin-bottom: 0.5rem;
+    margin-bottom: 1rem;
+    line-height: 1.5;
   }
   
-  .resource-card .footer {
+  .meta {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  
-  .resource-card .btn {
-    font-size: 0.85rem;
-    padding: 0.4rem 0.75rem;
-    border-radius: 8px;
-    background-color: #4f46e5;
-    color: #fff;
-    text-decoration: none;
-    transition: background 0.2s;
-  }
-  
-  .resource-card .btn:hover {
-    background-color: #3730a3;
-  }
-  
-  .resource-card .price {
-    font-weight: 600;
-    color: #111827;
+    gap: 1rem;
+    font-size: 0.9rem;
+    color: #9ca3af;
+    margin-bottom: 1rem;
   }
   
   /* ===============================
-     Utilities
+     UPLOAD FORM
      =============================== */
-  .muted {
-    color: #6b7280;
-    font-size: 0.9rem;
+  .upload-form {
+    max-width: 800px;
+    margin: 2rem auto;
+    background: white;
+    padding: 2.5rem;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+  }
+  
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  
+  .file-upload-section {
+    margin-bottom: 2rem;
+  }
+  
+  .file-upload-area {
+    border: 2px dashed #d1d5db;
+    border-radius: 12px;
+    padding: 3rem 2rem;
     text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 1rem;
+  }
+  
+  .file-upload-area:hover {
+    border-color: #4f46e5;
+    background: #f8fafc;
+  }
+  
+  .file-upload-area i {
+    font-size: 3rem;
+    color: #9ca3af;
+    margin-bottom: 1rem;
+  }
+  
+  .file-types {
+    font-size: 0.9rem;
+    color: #9ca3af;
+  }
+  
+  .file-info {
+    background: #f1f5f9;
+    padding: 1rem;
+    border-radius: 8px;
     margin-top: 1rem;
   }
   
-  .full-width {
-    grid-column: 1 / -1;
-  }
-  
   /* ===============================
-     Responsive adjustments
+     RESPONSIVE DESIGN
      =============================== */
   @media (max-width: 768px) {
-    .site-header .nav {
-      display: flex;
+    .hero .container {
       flex-direction: column;
-      align-items: flex-start;
-      gap: 0.5rem;
-      margin-top: 0.5rem;
+      text-align: center;
     }
-  
-    .form-actions {
-      flex-direction: column-reverse;
-      align-items: stretch;
+    
+    .hero-buttons {
+      flex-direction: column;
     }
-  
-    button.btn {
-      width: 100%;
+    
+    .hero-stats {
+      justify-content: center;
+    }
+    
+    .ussd-content {
+      flex-direction: column;
+      text-align: center;
+    }
+    
+    nav {
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    
+    .features-grid,
+    .steps,
+    .footer-content {
+      grid-template-columns: 1fr;
+    }
+    
+    .auth-card {
+      margin: 1rem;
+      padding: 2rem;
     }
   }
   
+  @media (max-width: 480px) {
+    .hero-content h1 {
+      font-size: 2.2rem;
+    }
+    
+    .hero-content p {
+      font-size: 1.1rem;
+    }
+    
+    .stat-number {
+      font-size: 2rem;
+    }
+    
+    .ussd-code code {
+      font-size: 1.4rem;
+    }
+  }

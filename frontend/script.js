@@ -14,6 +14,7 @@ function showStatus(message, type = 'success') {
   if (!statusDiv) {
     statusDiv = document.createElement('div');
     statusDiv.id = 'statusMessage';
+    statusDiv.className = `status ${type}`;
     document.body.appendChild(statusDiv);
   }
 
@@ -236,7 +237,7 @@ async function handleSearch(evt) {
 
     resultsEl.innerHTML = resources.map(r => {
       const priceStr = (r.price && r.price > 0) ? `KES ${r.price}` : 'Free';
-      const fileLink = r.file_url ? `<a class="btn" href="${r.file_url}" target="_blank" rel="noopener">Download</a>` : `<a class="btn" href="resource-detail.html?id=${r.id}">View</a>`;
+      const fileLink = r.file_url ? `<a class="btn" href="${r.file_url}" target="_blank" rel="noopener">Download</a>` : `<a class="btn" href="#">View</a>`;
       return `
         <div class="resource-card">
           <h3>${escapeHtml(r.title || 'Untitled')}</h3>
@@ -279,7 +280,7 @@ async function handleResourceUpload(evt) {
 
   const title = (form.querySelector('#title')?.value || '').trim();
   const description = (form.querySelector('#description')?.value || '').trim();
-  const subject = (form.querySelector('#subject')?.value || form.querySelector('#category')?.value || '').trim();
+  const subject = (form.querySelector('#subject')?.value || '').trim();
   const grade_level = (form.querySelector('#gradeLevel')?.value || '').trim();
   const language = (form.querySelector('#language')?.value || '').trim();
   const price = parseFloat(form.querySelector('#price')?.value || 0) || 0;
@@ -347,7 +348,7 @@ async function handleResourceUpload(evt) {
 }
 
 // =======================
-// Misc / Dashboard loader
+// Load dashboard resources
 // =======================
 async function loadDashboard() {
   const user = getCurrentUser();
@@ -356,27 +357,84 @@ async function loadDashboard() {
     return;
   }
 
+  // Update user name in dashboard
   const userNameEls = document.querySelectorAll('.user-name');
-  userNameEls.forEach(el => el.textContent = user.full_name || user.name || 'User');
+  userNameEls.forEach(el => {
+    el.textContent = user.full_name || user.name || 'User';
+  });
 
-  // load recommended resources (best-effort)
+  // Load recommended resources
   try {
     const res = await fetch(`${API_BASE_URL}/resources?limit=6`);
     if (!res.ok) return;
+    
     const body = await res.json();
     const recEl = document.getElementById('recommendedResources');
     if (!recEl) return;
+    
     const resources = body.resources || body || [];
-    recEl.innerHTML = resources.map(r => `
-      <div class="resource-card">
-        <h3>${escapeHtml(r.title)}</h3>
-        <p>${escapeHtml((r.description||'').substring(0,140))}${(r.description||'').length>140 ? '...' : ''}</p>
-        <div class="meta"><span>${escapeHtml(r.subject)}</span><span>${escapeHtml(r.grade_level)}</span></div>
-        <a class="btn" href="resource-detail.html?id=${r.id}">View</a>
-      </div>
-    `).join('');
+    
+    if (resources.length === 0) {
+      recEl.innerHTML = '<p>No resources available yet.</p>';
+      return;
+    }
+
+    recEl.innerHTML = resources.map(r => {
+      const priceStr = (r.price && r.price > 0) ? `KES ${r.price}` : 'Free';
+      return `
+        <div class="resource-card">
+          <h3>${escapeHtml(r.title || 'Untitled')}</h3>
+          <p>${escapeHtml((r.description || '').substring(0, 140))}${(r.description || '').length > 140 ? '...' : ''}</p>
+          <div class="meta">
+            <span>${escapeHtml(r.subject || '')}</span>
+            <span>${escapeHtml(r.grade_level || '')}</span>
+          </div>
+          <div class="footer">
+            <span class="price">${priceStr}</span>
+            <a class="btn" href="#">View</a>
+          </div>
+        </div>
+      `;
+    }).join('');
   } catch (e) {
-    // ignore
+    console.error('Failed to load dashboard resources:', e);
+    const recEl = document.getElementById('recommendedResources');
+    if (recEl) {
+      recEl.innerHTML = '<p>Unable to load resources at this time.</p>';
+    }
+  }
+}
+
+// =======================
+// Load homepage stats
+// =======================
+async function loadHomepageStats() {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/stats`);
+    if (!res.ok) return;
+    
+    const data = await res.json();
+    
+    if (data.resources) {
+      const el = document.getElementById('resource-count');
+      if (el) el.textContent = data.resources;
+    }
+    
+    if (data.languages) {
+      const el = document.getElementById('language-count');
+      if (el) el.textContent = data.languages;
+    }
+    
+    if (data.students) {
+      const el = document.getElementById('student-count');
+      if (el) el.textContent = data.students;
+    }
+  } catch (e) {
+    console.error('Failed to load stats:', e);
+    // Set default values if API fails
+    document.getElementById('resource-count').textContent = '500+';
+    document.getElementById('language-count').textContent = '10+';
+    document.getElementById('student-count').textContent = '1,000+';
   }
 }
 
@@ -396,7 +454,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (signupForm) signupForm.addEventListener('submit', handleSignup);
 
   // search form
-  const searchForm = document.getElementById('searchForm') || document.getElementById('searchFormHeader');
+  const searchForm = document.getElementById('searchForm');
   if (searchForm) searchForm.addEventListener('submit', handleSearch);
 
   // upload form
@@ -404,7 +462,36 @@ document.addEventListener('DOMContentLoaded', () => {
   if (uploadForm) uploadForm.addEventListener('submit', handleResourceUpload);
 
   // dashboard loader
-  if (document.getElementById('recommendedResources') || document.getElementById('dashboardResources')) {
+  if (document.querySelector('.user-name')) {
     loadDashboard();
   }
+
+  // homepage stats loader
+  if (document.getElementById('resource-count')) {
+    loadHomepageStats();
+  }
+
+  // Check if user is logged in for protected pages
+  const protectedPages = ['dashboard.html', 'upload.html', 'search.html', 'payment.html'];
+  const currentPage = window.location.pathname.split('/').pop();
+  
+  if (protectedPages.includes(currentPage)) {
+    const user = getCurrentUser();
+    if (!user) {
+      window.location.href = 'login.html';
+    }
+  }
 });
+
+// Service Worker Registration
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js')
+      .then((registration) => {
+        console.log('SW registered: ', registration);
+      })
+      .catch((registrationError) => {
+        console.log('SW registration failed: ', registrationError);
+      });
+  });
+}
