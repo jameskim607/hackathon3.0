@@ -4,6 +4,10 @@
    =============================== */
 
 /* Reset and base styles */
+/* TEST: If you see red background, CSS is working */
+body {
+  background-color: red !important;
+}
 * {
     box-sizing: border-box;
     margin: 0;
