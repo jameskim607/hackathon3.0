@@ -2,55 +2,53 @@ const CACHE_NAME = 'translearn-v2';
 const urlsToCache = [
   '/',
   '/index.html',
-  '/login.html',
-  '/signup.html',
-  '/dashboard.html',
-  '/search.html',
-  '/upload.html',
-  '/payment.html',
   '/styles.css',
   '/script.js',
   '/manifest.json',
-  '/icons/icon-192.png',
-  '/icons/icon-512.png',
-  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css'
+  // Add any other assets you want to cache
 ];
 
+// Install event
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
+    (async () => {
+      const cache = await caches.open(CACHE_NAME);
+      for (const url of urlsToCache) {
+        try {
+          await cache.add(url);
+        } catch (err) {
+          console.warn(`Failed to cache ${url}:`, err);
+        }
+      }
+    })()
   );
   self.skipWaiting();
 });
 
+// Activate event
 self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then(cacheNames =>
-      Promise.all(
-        cacheNames.map(cache => {
-          if (cache !== CACHE_NAME) return caches.delete(cache);
+    (async () => {
+      const cacheNames = await caches.keys();
+      await Promise.all(
+        cacheNames.map(name => {
+          if (name !== CACHE_NAME) {
+            return caches.delete(name);
+          }
         })
-      )
-    )
+      );
+    })()
   );
   self.clients.claim();
 });
 
+// Fetch event
 self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request).then(cachedResponse => {
-      if (cachedResponse) return cachedResponse;
-      return fetch(event.request).then(networkResponse => {
-        return caches.open(CACHE_NAME).then(cache => {
-          if (event.request.url.startsWith('http') && networkResponse.status === 200) {
-            cache.put(event.request, networkResponse.clone());
-          }
-          return networkResponse;
-        });
-      }).catch(() => {
-        if (event.request.destination === 'document') {
-          return caches.match('/index.html');
-        }
+      return cachedResponse || fetch(event.request).catch(err => {
+        console.warn(`Fetch failed for ${event.request.url}:`, err);
+        // Optionally return a fallback page or asset
       });
     })
   );
