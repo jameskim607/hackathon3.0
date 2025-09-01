@@ -10,3 +10,5 @@ python-dotenv==1.0.0
 requests==2.31.0
 cryptography==41.0.7
 bcrypt==4.1.2
+asyncpg==0.29.0
+aiofiles==23.2.1
