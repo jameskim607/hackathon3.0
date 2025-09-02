@@ -2,6 +2,150 @@
 
 TransLearn is a multilingual Learning Management System (LMS) prototype that allows teachers to upload resources, students to discover and rate them, and the platform to generate translations and track activity. It includes subscription plans, payment tracking, and monthly upload limits. The stack is designed for quick iteration and cloud deployment.
 
+### Hackathon One‑Pager (for judges and visitors)
+Make this your first stop. Short, skimmable, and demo‑ready.
+
+- Problem: Educational content is abundant but not accessible across languages, grade levels, and countries. Teachers lack simple tools to localize and track usage.
+- Solution: TransLearn lets teachers upload once, auto‑translate, and distribute resources globally; students discover content by subject/grade/language and give feedback.
+- Why now: AI translation and modern serverless infra make global learning content accessible, fast, and affordable.
+- What’s built: End‑to‑end MVP with real DB schema, upload limits by plan, translation logging, ratings, and a resilient frontend with a CORS‑free proxy.
+
+2‑Minute Live Demo
+1) Sign up or log in on Vercel (proxy ensures zero CORS issues).
+2) Search for resources by subject/grade; open cards and see details.
+3) Upload a new resource (as a teacher) and watch the monthly upload counter update.
+4) Rate a resource (as a student) and see feedback reflected.
+5) Trigger a translation (stub/flow) and observe `translation_logs` entries.
+
+What’s technically interesting
+- Database‑first design with strict UUIDs, triggers, and indexes for scale and reliability.
+- Clear business logic in SQL functions to enforce monthly plan limits atomically.
+- Clean separation: Vercel frontend with an `/api` proxy → Railway backend → Supabase DB.
+- Resilience patterns: health checks, graceful degradation to demo mode, and a proxy that eliminates CORS friction.
+
+Judging Criteria Mapping
+- Impact: Breaks language barriers for learning; supports low‑cost plans for global reach.
+- Innovation: DB‑native metering of upload limits; translation audit trails; repo‑ready serverless proxy.
+- Feasibility: Deployed end‑to‑end with supabase functions/policies and real cloud URLs.
+- UX: Minimal clicks to sign up, search, upload, rate; modern, responsive UI patterns.
+- Extensibility: Clear roadmap to plug in AI translation/provider billing/webhooks.
+
+Roadmap (Post‑hackathon)
+- Production AI translation (batch + streaming), quality scores, and human‑in‑the‑loop review.
+- Payments: provider integration, webhooks → `payment_transactions`, plan activation in `subscription_plans`.
+- Personalized recommendations and classroom cohorts.
+- Teacher dashboards with analytics from `logs`.
+
+Quick links
+- Frontend (Vercel): `https://hackathon3-0-xi.vercel.app`
+- Backend (Railway): `https://web-production-02449.up.railway.app`
+- API via proxy: call `/api/...` from the frontend
+
+### AI Project Prompt (copy-paste)
+Use this prompt to quickly brief teammates, judges, or AI tools about the project.
+
+"""
+You are working on TransLearn, a multilingual Learning Management System.
+
+High-level:
+- Frontend: static site on Vercel using `frontend/script.js` to call the backend
+- Backend: HTTP API on Railway, proxied via Vercel `/api/*` to avoid CORS
+- Database: Supabase Postgres with UUID primary keys, triggers, functions, and RLS
+
+Core features:
+- Users (admin/teacher/student) with country and language
+- Resources authored by teachers with subject, grade, tags, and file URL
+- Ratings (1–5) and feedback from students
+- Translations per language (text, optional TTS URL, summary)
+- Activity logs for analytics/auditing
+- Subscriptions and payment transactions (UUID-based)
+- Monthly upload limits per user with SQL functions to check/increment
+
+Important details:
+- All FKs are UUID; do NOT use integer IDs
+- SQL functions available: `reset_monthly_upload_counts()`, `check_upload_limit(uuid)`, `increment_upload_count(uuid)`
+- Vercel proxy routes `/api/*` → Railway backend (set `BACKEND_URL`)
+- If backend is unhealthy, the frontend can switch to demo mode
+
+Tasks you might do:
+- Add endpoints for subscriptions/payments and wire to Supabase tables
+- Extend search and filtering for resources
+- Integrate AI translation service and log to `translation_logs`
+- Improve RLS policies and role-based access
+- Harden CORS or auth as needed
+"""
+
+### Extended AI Project Prompt (detailed)
+Copy-paste this longer prompt when you need a comprehensive, end-to-end description for proposals, hackathons, or advanced AI assistance.
+
+"""
+You are joining the TransLearn project, a multilingual Learning Management System (LMS) designed to help teachers create and share educational resources while enabling students to search, rate, and consume localized/translated content. The system emphasizes global reach (country/language), scalability, and clear data governance.
+
+Architecture and Stack:
+- Frontend: Static site (HTML/CSS/JS) hosted on Vercel. It uses a resilient `frontend/script.js` that performs backend health checks, handles auth flows, resource search/upload, and can fall back to a demo mode if the backend is down.
+- Backend: HTTP API hosted on Railway. The Vercel app proxies all requests via `/api/*` to the backend (`BACKEND_URL`) to avoid CORS issues, so the browser always calls the same origin.
+- Database: Supabase Postgres with UUID primary keys, rich indexing, update triggers, JSONB for logs/metadata, business logic functions (PL/pgSQL), and Row Level Security (RLS) policies.
+
+Primary Use Cases:
+1) Teachers upload resources with subject/grade/tags in a target country/language. Files are referenced by URL.
+2) Students search by query/subject/grade, view and download resources, and provide ratings/feedback.
+3) The platform supports translations (per language) including optional TTS URLs and summaries, recorded in `translations` and `translation_logs`.
+4) Subscription plans with monthly upload limits: Free/Basic/Premium/Enterprise. Upload counters are tracked monthly per user with helper functions to check/increment limits.
+5) Activity logging for auditing and analytics using a flexible JSONB `logs.details`.
+
+Data Model (UUID-based):
+- `users(id, role, full_name, email unique, country, language, created_at, updated_at, subscription_plan, subscription_expires_at)`
+- `resources(id, teacher_id->users, title, description, subject, grade, country, language, tags[], file_url, created_at, updated_at)`
+- `ratings(id, resource_id->resources, student_id->users, rating 1..5, feedback, created_at, updated_at, unique(resource_id, student_id))`
+- `translations(id, resource_id->resources, target_language, translated_text, tts_url, summary, created_at, updated_at, unique(resource_id, target_language))`
+- `logs(id, user_id->users nullable, action, details jsonb, created_at)`
+- `payment_transactions(id, user_id->users, transaction_id unique, amount, currency, payment_method, payment_provider, status, metadata jsonb, timestamps)`
+- `subscription_plans(id, user_id->users, plan_name, plan_type, amount, currency, status, starts_at, expires_at, payment_transaction_id, timestamps)`
+- `user_upload_counts(id, user_id->users, month_year 'YYYY-MM', upload_count, upload_limit, timestamps, unique(user_id, month_year))`
+- `translation_logs(id, user_id->users, resource_id->resources, source_language, target_language, text_length, translation_status, model_used, confidence_score, processing_time_ms, created_at)`
+
+Business Logic Functions:
+- `_default_limit_for_plan(plan)` → 3/15/50/200 depending on plan
+- `reset_monthly_upload_counts()` → seeds current month rows in `user_upload_counts` if missing
+- `check_upload_limit(user_id uuid)` → returns can_upload/current/limit/remaining/message
+- `increment_upload_count(user_id uuid)` → increments counter atomically if under limit
+
+Security and Access:
+- RLS is enabled for subscription, payments, upload counts, and translation logs. Policies typically allow users to select/modify only where `user_id = auth.uid()`.
+- API roles are granted execution rights to the functions needed by the application.
+
+API Endpoints (representative; confirm with backend):
+- Auth: `POST /users/register` (email, full_name, password, country?, language?, role?), `POST /users/login` (email, password)
+- Users: `GET /users/:id/dashboard`
+- Resources: `GET /resources?query&subject&grade`, `POST /resources/upload` (multipart)
+- Ratings: `POST /resources/:id/ratings` (rating, feedback?)
+- Translations: `GET /resources/:id/translations`, `POST /resources/:id/translations`
+- Subscriptions/Payments: `GET /subscriptions`, `POST /subscriptions`, `GET /payments`
+
+Frontend Integration Details:
+- `API_BASE_URL` is `/api` on Vercel (proxy), otherwise direct Railway URL locally.
+- Signup normalizes payload: maps `name`→`full_name`, sets defaults (role=student, country=Kenya, language=en), lowercases email, checks confirm password if present.
+- Health checks and safe fetch patterns detect backend outages and either surface errors or enable demo mode.
+
+Deployment:
+- Vercel: includes `vercel.json` routing `/api/*` to a serverless proxy (`api/[...path].js`) and serving static files from `frontend/`. Set `BACKEND_URL` env to Railway URL.
+- Railway: deploy the backend and ensure it accepts JSON and integrates with Supabase.
+- Supabase: execute base schema and update migration, set RLS policies and function grants, and schedule `reset_monthly_upload_counts()` monthly.
+
+Constraints and Considerations:
+- All tables use UUID primary keys; avoid integer IDs.
+- CORS is mitigated by the Vercel proxy; backend can still enable CORS for local dev.
+- Indices on common filter columns support performance; JSONB fields in logs/metadata are flexible but should be used judiciously.
+- Error handling should respond with consistent JSON, and proxy should relay status codes.
+
+Suggested Next Steps:
+- Implement robust auth (JWT/cookies) and role checks in backend.
+- Expand resource search (tags, country, language filters) and pagination.
+- Integrate AI translation pipeline and store results in `translations`/`translation_logs`.
+- Build subscription billing flows with a payment provider webhook, writing to `payment_transactions` and `subscription_plans`.
+- Add admin dashboards for moderation and analytics.
+"""
+
 ### Live Services
 - Backend (Railway): `https://web-production-02449.up.railway.app`
 - Frontend (Vercel): `https://hackathon3-0-xi.vercel.app`
