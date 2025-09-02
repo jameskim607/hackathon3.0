@@ -29,14 +29,27 @@ async function testBackendConnection() {
 // =======================
 async function checkBackendHealth() {
   try {
+    // Prefer an explicit health endpoint; fall back to root
+    const healthResponse = await fetch(`${API_BASE_URL}/health`, {
+      signal: AbortSignal.timeout(5000)
+    }).catch(() => null);
+
+    if (healthResponse) {
+      if (healthResponse.ok || healthResponse.status === 404) {
+        backendStatus = 'healthy';
+        return true;
+      }
+    }
+
     const response = await fetch(`${API_BASE_URL}/`, {
-      signal: AbortSignal.timeout(5000) // 5 second timeout
-    });
-    
-    if (response.ok) {
+      signal: AbortSignal.timeout(5000)
+    }).catch(() => null);
+
+    if (response && (response.ok || response.status === 404)) {
       backendStatus = 'healthy';
       return true;
     }
+
     backendStatus = 'crashing';
     return false;
   } catch (error) {
@@ -208,13 +221,9 @@ function logout() {
 // =======================
 async function handleLogin(evt) {
   evt.preventDefault();
-  
-  const isHealthy = await checkBackendHealth();
-  if (!isHealthy) {
-    showStatus('Backend is having issues. Using demo mode.', 'error');
-    enableDemoMode();
-    return handleLogin(evt); // Retry with demo mode
-  }
+
+  // Soft-check backend: proceed even if health check fails
+  await checkBackendHealth();
 
   try {
     showStatus('Signing in...', 'loading');
@@ -232,19 +241,20 @@ async function handleLogin(evt) {
     setTimeout(() => window.location.href = 'dashboard.html', 1000);
     
   } catch (error) {
+    if (backendStatus !== 'healthy') {
+      showStatus('Backend issues detected. Enabling demo mode for now.', 'error');
+      enableDemoMode();
+      return;
+    }
     showStatus(`Login failed: ${error.message}`, 'error');
   }
 }
 
 async function handleSignup(evt) {
   evt.preventDefault();
-  
-  const isHealthy = await checkBackendHealth();
-  if (!isHealthy) {
-    showStatus('Backend is having issues. Using demo mode.', 'error');
-    enableDemoMode();
-    return handleSignup(evt); // Retry with demo mode
-  }
+
+  // Soft-check backend: proceed even if health check fails
+  await checkBackendHealth();
 
   try {
     showStatus('Creating account...', 'loading');
@@ -283,6 +293,11 @@ async function handleSignup(evt) {
     setTimeout(() => window.location.href = 'dashboard.html', 1000);
     
   } catch (error) {
+    if (backendStatus !== 'healthy') {
+      showStatus('Backend issues detected. Enabling demo mode for now.', 'error');
+      enableDemoMode();
+      return;
+    }
     showStatus(`Signup failed: ${error.message}`, 'error');
   }
 }
