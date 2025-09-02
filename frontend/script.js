@@ -2,10 +2,8 @@
 // script.js - Backend Crash Resistant Version
 // =======================
 
-// Use Vercel proxy in production; can be switched at runtime if unavailable
-let API_BASE_URL = (typeof window !== 'undefined' && window.location.host.includes('vercel.app'))
-  ? '/api'
-  : 'https://web-production-02449.up.railway.app';
+// Fast workaround: hardcode backend URL to Railway to bypass Vercel proxy
+const API_BASE_URL = 'https://web-production-02449.up.railway.app';
 let backendStatus = 'unknown'; // unknown, healthy, crashing, offline
 
 // =======================
@@ -29,18 +27,7 @@ async function testBackendConnection() {
   }
 }
 
-// Ensure proxy is available; if not, fallback to direct Railway URL
-async function ensureApiBaseAvailable() {
-  try {
-    const res = await fetch(`/api/health`, { signal: AbortSignal.timeout(4000) });
-    if (res.ok || res.status === 404) {
-      API_BASE_URL = '/api';
-      return;
-    }
-  } catch (_) {}
-  // Fallback to direct backend URL
-  API_BASE_URL = 'https://web-production-02449.up.railway.app';
-}
+// Proxy availability check disabled in fast workaround
 
 // =======================
 // Check Backend Health
