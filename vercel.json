@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "env": {
+    "BACKEND_URL": "https://web-production-02449.up.railway.app"
+  },
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/api/[...path].js" },
+    { "src": "/(.*)", "dest": "/frontend/$1" }
+  ]
+}
+
+

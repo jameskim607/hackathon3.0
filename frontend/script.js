@@ -2,7 +2,10 @@
 // script.js - Backend Crash Resistant Version
 // =======================
 
-const API_BASE_URL = 'https://web-production-02449.up.railway.app';
+// Use Vercel proxy to avoid CORS in production; fallback to direct URL locally
+const API_BASE_URL = (typeof window !== 'undefined' && window.location.host.includes('vercel.app'))
+  ? '/api'
+  : 'https://web-production-02449.up.railway.app';
 let backendStatus = 'unknown'; // unknown, healthy, crashing, offline
 
 // =======================
