@@ -2,8 +2,8 @@
 // script.js - Backend Crash Resistant Version
 // =======================
 
-// Use Vercel proxy to avoid CORS in production; fallback to direct URL locally
-const API_BASE_URL = (typeof window !== 'undefined' && window.location.host.includes('vercel.app'))
+// Use Vercel proxy in production; can be switched at runtime if unavailable
+let API_BASE_URL = (typeof window !== 'undefined' && window.location.host.includes('vercel.app'))
   ? '/api'
   : 'https://web-production-02449.up.railway.app';
 let backendStatus = 'unknown'; // unknown, healthy, crashing, offline
@@ -15,13 +15,31 @@ async function testBackendConnection() {
   try {
     console.log('Testing backend connection...');
     const response = await fetch(`${API_BASE_URL}/`);
-    const data = await response.json();
-    console.log('Backend response:', data);
+    const contentType = response.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) {
+      const data = await response.json();
+      console.log('Backend response:', data);
+    } else {
+      console.log('Backend response (non-JSON):', response.status);
+    }
     return true;
   } catch (error) {
     console.error('Backend connection failed:', error);
     return false;
   }
+}
+
+// Ensure proxy is available; if not, fallback to direct Railway URL
+async function ensureApiBaseAvailable() {
+  try {
+    const res = await fetch(`/api/health`, { signal: AbortSignal.timeout(4000) });
+    if (res.ok || res.status === 404) {
+      API_BASE_URL = '/api';
+      return;
+    }
+  } catch (_) {}
+  // Fallback to direct backend URL
+  API_BASE_URL = 'https://web-production-02449.up.railway.app';
 }
 
 // =======================
@@ -500,6 +518,7 @@ function updateDashboard(data) {
 document.addEventListener('DOMContentLoaded', async () => {
   // Test backend connection first
   console.log('Testing backend connection...');
+  await ensureApiBaseAvailable();
   const connectionTest = await testBackendConnection();
   
   // Check backend status
