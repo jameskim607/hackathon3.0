@@ -246,7 +246,28 @@ async function handleSignup(evt) {
   try {
     showStatus('Creating account...', 'loading');
     const formData = new FormData(evt.target);
-    const payload = Object.fromEntries(formData);
+    const raw = Object.fromEntries(formData);
+
+    // Normalize payload to match backend/DB schema
+    const payload = {
+      // required by backend/DB
+      email: (raw.email || '').trim().toLowerCase(),
+      full_name: (raw.full_name || raw.name || '').trim(),
+      role: (raw.role || 'student').trim(),
+      country: (raw.country || 'Kenya').trim(),
+      language: (raw.language || 'en').trim(),
+      // common auth fields
+      password: raw.password || undefined
+    };
+
+    // Optional: enforce password confirmation if present in form
+    if (raw.confirm_password && raw.password !== raw.confirm_password) {
+      showStatus('Passwords do not match.', 'error');
+      return;
+    }
+
+    // Remove undefined keys to avoid backend validation issues
+    Object.keys(payload).forEach((k) => payload[k] === undefined && delete payload[k]);
     
     const response = await safeFetch(`${API_BASE_URL}/users/register`, {
       method: 'POST',
