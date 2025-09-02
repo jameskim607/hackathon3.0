@@ -1,3 +1,23 @@
+Backend (Express)
+
+Env vars:
+- DATABASE_URL: Supabase Postgres connection string
+- ALLOWED_ORIGIN: Frontend origin for CORS
+- PORT: Optional, defaults to 3000
+
+Scripts:
+- npm install
+- npm run start
+
+Endpoints:
+- GET /health
+- GET /
+- POST /users/register
+- POST /users/login
+- GET /users/:id/dashboard
+- GET /resources
+- POST /resources/upload
+
 # LMS Backend API
 
 A FastAPI backend for the Learning Management System with JWT authentication and Supabase integration.
