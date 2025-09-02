@@ -94,6 +94,26 @@ async function safeFetch(url, options = {}) {
   }
 }
 
+// Try multiple endpoint candidates until one succeeds
+async function tryEndpointsJson(candidates, options = {}) {
+  let lastError = null;
+  for (const path of candidates) {
+    const url = `${API_BASE_URL}${path}`;
+    try {
+      return await safeFetch(url, options);
+    } catch (err) {
+      lastError = err;
+      // Continue only on 404/405 to try alternatives; otherwise surface error
+      const msg = String(err.message || '');
+      if (!/HTTP 404|HTTP 405/i.test(msg)) {
+        throw err;
+      }
+    }
+  }
+  if (lastError) throw lastError;
+  throw new Error('No endpoints responded');
+}
+
 // =======================
 // Global status message helper
 // =======================
@@ -230,7 +250,13 @@ async function handleLogin(evt) {
     const formData = new FormData(evt.target);
     const payload = Object.fromEntries(formData);
     
-    const response = await safeFetch(`${API_BASE_URL}/users/login`, {
+    const loginCandidates = [
+      '/users/login',
+      '/auth/login',
+      '/login'
+    ];
+
+    const response = await tryEndpointsJson(loginCandidates, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
@@ -282,7 +308,16 @@ async function handleSignup(evt) {
     // Remove undefined keys to avoid backend validation issues
     Object.keys(payload).forEach((k) => payload[k] === undefined && delete payload[k]);
     
-    const response = await safeFetch(`${API_BASE_URL}/users/register`, {
+    const signupCandidates = [
+      '/users/register',
+      '/auth/register',
+      '/register',
+      '/users/signup',
+      '/auth/signup',
+      '/signup'
+    ];
+
+    const response = await tryEndpointsJson(signupCandidates, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
